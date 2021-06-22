@@ -30,15 +30,15 @@ Install nix to the local system.
 
 OPTIONS:
     -h/--help:         show this message
-    -V/--version:      specify release version, default latest
-    -F/--force:        force reinstallation
+    -v/--version:      specify release version, default latest
+    -F/--force:        force re-run of installer
     -s/--single-user:  install in single user mode, default false
 
 To find available release versions see '$URL'.
 EOF
     )
 
-    . $GETOPT -n "$0: ${FUNCNAME[0]}" -o "shV:F" -l "single-user,help,version:,force" -- "$@"
+    . $GETOPT -n "$0: ${FUNCNAME[0]}" -o "shv:F" -l "single-user,help,version:,force" -- "$@"
 
     local ARG i=0
     while [ "$i" -lt "${#OPTS[@]}" ]; do
@@ -48,7 +48,7 @@ EOF
             -h|--help)
                 echou "$USAGE"
                 ;;
-            -V|--version)
+            -v|--version)
                 local RELEASE="${OPTS[$i]}"
                 i=$((i+1))
                 ;;
@@ -76,7 +76,8 @@ EOF
         echou "$USAGE"
     done
 
-    $FORCE || ! command -v nix > /dev/null || ercho "${FUNCNAME[0]}: nix is already installed; use '-F/--force' to reinstall" 1
+    $FORCE || ! command -v nix > /dev/null \
+        || ercho "${FUNCNAME[0]}: nix is already installed; use '-F/--force' to re-run installer" 1
 
     if [ -n "${RELEASE:-}" ]; then
         URL="$URL/download/$RELEASE/install"
@@ -84,9 +85,11 @@ EOF
         URL="$URL/latest/download/install"
     fi
 
-    [ "$(uname -s)" != "Darwin" ] || FLAG="--darwin-use-unencrypted-nix-store-volume"
-
-    bash <(curl -L $URL) ${DAEMON:+--daemon }${FLAG:-}
+    #bash <(curl -L $URL) ${DAEMON:+--daemon }${FLAG:-}
+    ercho "NOTICE: due to MacOS installation issues, the version of"
+    ercho "the nix installer has been overriden with a pre-release pkg."
+    # https://github.com/NixOS/nix/pull/4289#user-content-try-it-out
+    sh <(curl https://abathur-nix-install-tests.cachix.org/serve/yihf8zbs0jwph2rs9qfh80dnilijxdi2/install) --tarball-url-prefix https://abathur-nix-install-tests.cachix.org/serve
 }
 
 

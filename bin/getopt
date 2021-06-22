@@ -196,7 +196,7 @@ parse_opt () {
 
 
 parse_opts_args () {
-    local NEXT N
+    local NEXT N ARG_INDEX
     for ((ARG_INDEX=1; ARG_INDEX<=$#; ++ARG_INDEX)); do
         ARG=${!ARG_INDEX}
         case $ARG in
@@ -265,4 +265,3 @@ main () {
 
 
 main "$@"
-unset ARG_INDEX
