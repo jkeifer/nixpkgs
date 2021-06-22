@@ -1,0 +1,164 @@
+#!/bin/bash -eu
+
+
+# this should use realpath, but the MacOS BSD version
+# is a joke and doesn't work for these purposes
+SCRIPT_DIR="$(python -c "import os; import sys; print(os.path.realpath('${BASH_SOURCE[0]%/*}'))")"
+GETOPT="$SCRIPT_DIR/getopt"
+
+
+ercho () {
+    local MSG="${1:?message to echo is required}"
+    echo -e >&2 "$0: $MSG"
+    [ -z "${2:-}" ] || exit $2
+}
+
+echou () {
+    echo -e >&2 "$1"
+    exit 0
+}
+
+
+install () {
+    local URL=https://github.com/numtide/nix-unstable-installer/releases
+    local FORCE=false
+    local DAEMON=true
+    local USAGE=$(cat <<EOF
+USAGE: $0 install [ OPTIONS ]
+
+Install nix to the local system.
+
+OPTIONS:
+    -h/--help:         show this message
+    -V/--version:      specify release version, default latest
+    -F/--force:        force reinstallation
+    -s/--single-user:  install in single user mode, default false
+
+To find available release versions see '$URL'.
+EOF
+    )
+
+    . $GETOPT -n "$0: ${FUNCNAME[0]}" -o "shV:F" -l "single-user,help,version:,force" -- "$@"
+
+    local ARG i=0
+    while [ "$i" -lt "${#OPTS[@]}" ]; do
+        ARG="${OPTS[$i]}"
+        i=$((i+1))
+        case $ARG in
+            -h|--help)
+                echou "$USAGE"
+                ;;
+            -V|--version)
+                local RELEASE="${OPTS[$i]}"
+                i=$((i+1))
+                ;;
+            -F|--force)
+                FORCE=true
+                ;;
+            -s|--single-user)
+                DAEMON=
+                ;;
+            --)
+                break
+                ;;
+            *)
+                ercho "${FUNCNAME[0]}: unknown option: '$ARG'" 1
+                ;;
+        esac
+    done
+
+    # handle unknown arguments (allowing 'help')
+    i=0
+    while [ "$i" -lt "${#ARGS[@]}" ]; do
+        ARG="${OPTS[$i]}"
+        i=$((i+1))
+        [ "$ARG" == "help" ] || ercho "${FUNCNAME[0]}: unknown argument: '$ARG'" 1
+        echou "$USAGE"
+    done
+
+    $FORCE || ! command -v nix > /dev/null || ercho "${FUNCNAME[0]}: nix is already installed; use '-F/--force' to reinstall" 1
+
+    if [ -n "${RELEASE:-}" ]; then
+        URL="$URL/download/$RELEASE/install"
+    else
+        URL="$URL/latest/download/install"
+    fi
+
+    [ "$(uname -s)" != "Darwin" ] || FLAG="--darwin-use-unencrypted-nix-store-volume"
+
+    bash <(curl -L $URL) ${DAEMON:+--daemon }${FLAG:-}
+}
+
+
+uninstall () {
+    ercho "${FUNCNAME[0]}: not yet implemented"
+    ercho "please see the following for a manual proceedure:"
+    ercho "https://gist.github.com/chriselsner/3ebe962a4c4bd1f14d39897fc5619732"
+    exit 1
+}
+
+
+bootstrap () {
+    ercho "${FUNCNAME[0]}: not yet implemented" 1
+}
+
+
+build () {
+    ercho "${FUNCNAME[0]}: not yet implemented" 1
+}
+
+
+apply () {
+    ercho "${FUNCNAME[0]}: not yet implemented" 1
+}
+
+
+main () {
+    local USAGE=$(cat <<EOF
+USAGE: $0 COMMAND [ COMMAND_OPTS ] [ COMMAND_ARGS ]
+
+nix system managment utility
+
+Supported Commands:
+    help:       show this message
+    install:    install nix to this system
+    bootstrap:  install nix and apply config
+    build:      build a new config
+    apply:      apply a built config
+    uninstall:  uninstall nix/config from the system
+
+All commmands support 'help' for more information.
+EOF
+    )
+
+    local CMD="${1:-}"; shift ||:
+    case "${CMD:-}" in
+        install)
+            install "$@"
+            ;;
+        uninstall)
+            uninstall "$@"
+            ;;
+        bootstrap)
+            bootstrap "$@"
+            ;;
+        build)
+            build "$@"
+            ;;
+        apply)
+            apply "$@"
+            ;;
+        help|-h|--help)
+            echou "$USAGE"
+            ;;
+        ?*)
+            ercho "unknown command: '$CMD'" 1
+            ;;
+        *)
+            echou "$USAGE"
+            ;;
+    esac
+}
+
+
+main "$@"
