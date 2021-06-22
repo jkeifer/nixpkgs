@@ -74,6 +74,7 @@
       tree
       watch
       wget
+      zsh
       zsh-powerlevel10k
 
       #comma # run software from without installing it

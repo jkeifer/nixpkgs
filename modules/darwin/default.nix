@@ -26,7 +26,7 @@
     # `home-manager` currently has issues adding them to `~/Applications`
     # Issue: https://github.com/nix-community/home-manager/issues/1341
     systemPackages = with pkgs; [
-      bashInteractive
+      bashInteractive_5
       coreutils
       curl
       git
