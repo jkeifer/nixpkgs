@@ -1,10 +1,22 @@
 #!/bin/bash -eu
-
+# Inspired by https://github.com/kclejeune/system/blob/master/bin/do.py
 
 # this should use realpath, but the MacOS BSD version
 # is a joke and doesn't work for these purposes
 SCRIPT_DIR="$(python -c "import os; import sys; print(os.path.realpath('${BASH_SOURCE[0]%/*}'))")"
 GETOPT="$SCRIPT_DIR/getopt"
+
+# Configuration Targets
+NIXOS=nixosConfigurations
+DARWIN=darwinConfigurations
+HOME_MANAGER=homeConfigurations
+
+
+get_conf_target () {
+    ! command -v nixos-rebuild > /dev/null || { echo "$NIXOS"; return; }
+    [ "$(uname -s)" != "Darwin" ] || { echo "$DARWIN"; return; }
+    echo "$HOME_MANAGER"
+}
 
 
 ercho () {
@@ -111,20 +123,23 @@ bootstrap () {
     local USAGE=$(cat <<EOF
 USAGE: $0 ${FUNCNAME[0]} [ OPTIONS ]
 
-Build the user/system configuration.
+Bootstrap the initial system config and the installation
+of all required nix packages from a base system with a
+basic nix installation (see the 'install' command).
 
 OPTIONS:
     -h/--help        show this message
     --home-manager*  force home-manager-only build (discovered if needed by default)
     --darwin*        force MacOS system build (discovered if needed by default)
+    --nixos*         force NixOS system build (discovered if needed by default)
     --host           hostname to use for reference configuration (default from system)
     --switch         activate the new command upon successful build (default false)
 
-* mutually-exclusive
+*mutually-exclusive
 EOF
     )
 
-    . $GETOPT -n "$0: ${FUNCNAME[0]}" -o "h" -l "help,home-manager,darwin,host:,switch" -- "$@"
+    . $GETOPT -n "$0: ${FUNCNAME[0]}" -o "h" -l "help,home-manager,darwin,nixos,host:,switch" -- "$@"
 
     local TARGET SWITCH=false ARG i=0
     while [ "$i" -lt "${#OPTS[@]}" ]; do
@@ -140,11 +155,15 @@ EOF
                 ;;
             --home-manager)
                 [ -z "$TARGET" ] || ercho "${FUNCNAME[0]}: cannot specify multiple build targets" 1
-                TARGET=homeConfigurations
+                TARGET="$HOME_MANAGER"
                 ;;
             --darwin)
                 [ -z "$TARGET" ] || ercho "${FUNCNAME[0]}: cannot specify multiple build targets" 1
-                TARGET=darwinConfigurations
+                TARGET="$DARWIN"
+                ;;
+            --nixos)
+                [ -z "$TARGET" ] || ercho "${FUNCNAME[0]}: cannot specify multiple build targets" 1
+                TARGET="$NIXOS"
                 ;;
             --switch)
                 SWITCH=true
@@ -169,19 +188,17 @@ EOF
 
     has_nix || ercho "nix is not on the path; do you need to run the install command first?" 1
 
-    [ -n "$TARGET" ] || {
-        TARGET=homeConfigurations
-        [ "$(uname -s)" != "Darwin" ] || TARGET=darwinConfigurations
-    }
+    # if unspecified, figure out the build/config target type
+    [ -n "$TARGET" ] || TARGET="$(get_conf_target)"
 
-    cd $SCRIPT_DIR/..
+    cd "$SCRIPT_DIR/.."
     nix build ".#${TARGET}.${HOSTNAME}.config.system.build.toplevel" -v --experimental-features "nix-command flakes"
 
     if  $SWITCH; then
         ./result/activate-user
         sudo ./result/activate
     else
-        ercho "NOTICE: config not activated. Run again with '--switch' or manually run the following:"
+        ercho "NOTICE: result built but not activated. Run again with '--switch' or manually run the following:"
         ercho "    $(pwd)/result/activate-user"
         ercho "    sudo $(pwd)/result/activate"
     fi
@@ -189,12 +206,227 @@ EOF
 
 
 build () {
-    ercho "${FUNCNAME[0]}: not yet implemented" 1
+    _build ${FUNCNAME[0]} "$@"
 }
 
 
 switch () {
-    ercho "${FUNCNAME[0]}: not yet implemented" 1
+    _build ${FUNCNAME[0]} "$@"
+}
+
+
+_build () {
+    local ACTION="${1}"; shift ||:
+    local HOSTNAME=$(hostname)
+    local USAGE=$(cat <<EOF
+USAGE: $0 ${ACTION} [ OPTIONS ]
+
+Command to $ACTION the user/system configuration.
+Discovers unspecified build parameters from the system.
+
+OPTIONS:
+    -h/--help        show this message
+    --home-manager*  force home-manager-only build (discovered if needed by default)
+    --darwin*        force MacOS system build (discovered if needed by default)
+    --nixos*         force NixOS system build (discovered if needed by default)
+    --host           hostname to use for reference configuration (default from system)
+
+*mutually-exclusive
+EOF
+    )
+
+    . $GETOPT -n "$0: ${ACTION}" -o "h" -l "help,home-manager,darwin,nixos,host:" -- "$@"
+
+    local TARGET ARG i=0
+    while [ "$i" -lt "${#OPTS[@]}" ]; do
+        ARG="${OPTS[$i]}"
+        i=$((i+1))
+        case $ARG in
+            -h|--help)
+                echou "$USAGE"
+                ;;
+            --host)
+                HOSTNAME="${OPTS[$i]}"
+                i=$((i+1))
+                ;;
+            --home-manager)
+                [ -z "$TARGET" ] || ercho "${ACTION}: cannot specify multiple build targets" 1
+                TARGET="$HOME_MANAGER"
+                ;;
+            --darwin)
+                [ -z "$TARGET" ] || ercho "${ACTION}: cannot specify multiple build targets" 1
+                TARGET="$DARWIN"
+                ;;
+            --nixos)
+                [ -z "$TARGET" ] || ercho "${ACTION}: cannot specify multiple build targets" 1
+                TARGET="$NIXOS"
+                ;;
+            --)
+                break
+                ;;
+            *)
+                ercho "${ACTION}: unknown option: '$ARG'" 1
+                ;;
+        esac
+    done
+
+    # handle unknown arguments (allowing 'help')
+    i=0
+    while [ "$i" -lt "${#ARGS[@]}" ]; do
+        ARG="${OPTS[$i]}"
+        i=$((i+1))
+        [ "$ARG" == "help" ] || ercho "${ACTION}: unknown argument: '$ARG'" 1
+        echou "$USAGE"
+    done
+
+    [ -n "$TARGET" ] || TARGET="$(get_conf_target)"
+
+    local CMD
+    case "$TARGET" in
+        $NIXOS)
+            CMD="sudo nixos-rebuild"
+            ;;
+        $DARWIN)
+            CMD="darwin-rebuild"
+            ;;
+        $HOME_MANAGER)
+            CMD="home-manager"
+            ;;
+        *)
+            ercho "${ACTION}: unknown target type: '$TARGET'" 1
+            ;;
+    esac
+
+
+    cd "$SCRIPT_DIR/.."
+    $CMD $ACTION --flake ".#${HOSTNAME}"
+    ercho "${ACTION}: NOTICE: result built but not activated. Run the 'switch' command to apply it."
+}
+
+
+update () {
+    local USAGE=$(cat <<EOF
+USAGE: $0 ${FUNCNAME[0]} [ OPTIONS ]
+
+Update one or more flake input versions in the lock file.
+
+OPTIONS:
+    -f/--flake   name of a flake to update (default all; can specify multiple times)
+    -c/--commit  commit the lockfile changes
+    -h/--help    show this message
+EOF
+    )
+
+    . $GETOPT -n "$0: ${FUNCNAME[0]}" -o "hf:c" -l "help,flake:,commit" -- "$@"
+
+    local FLAKES=() ARG i=0
+    while [ "$i" -lt "${#OPTS[@]}" ]; do
+        ARG="${OPTS[$i]}"
+        i=$((i+1))
+        case $ARG in
+            -h|--help)
+                echou "$USAGE"
+                ;;
+            -f|--flake)
+                FLAKES+=("${OPTS[$i]}")
+                i=$((i+1))
+                ;;
+            --commit)
+                COMMIT=true
+                ;;
+            --)
+                break
+                ;;
+            *)
+                ercho "${ACTION}: unknown option: '$ARG'" 1
+                ;;
+        esac
+    done
+
+    # handle unknown arguments (allowing 'help')
+    i=0
+    while [ "$i" -lt "${#ARGS[@]}" ]; do
+        ARG="${OPTS[$i]}"
+        i=$((i+1))
+        [ "$ARG" == "help" ] || ercho "${ACTION}: unknown argument: '$ARG'" 1
+        echou "$USAGE"
+    done
+
+    local ACTION=update UPDATES=""
+    for FLAKE in ${FLAKES[@]}; do
+        ACTION=lock
+        UPDATES="$UPDATES --update-input $FLAKE"
+    done
+
+    cd "$SCRIPT_DIR/.."
+    nix flake ${ACTION}${COMMIT:+ --commit-lock-file}${UPDATES}
+}
+
+
+pull () {
+    local USAGE=$(cat <<EOF
+USAGE: $0 ${FUNCNAME[0]} [ OPTIONS ]
+
+Update local repo with remote changes.
+Any uncommitted changes will be stashed then re-applied.
+
+OPTIONS:
+    -h/--help        show this message
+EOF
+    )
+
+    [ "$#" -eq 0 ] || {
+        case "$1" in
+            help|--help|-h) echou "$USAGE" ;;
+            *) ercho "${FUNCNAME[0]}: unknown argument: '$ARG'" 1 ;;
+        esac
+    }
+
+    git stash && git pull --rebase && git stash pop
+}
+
+
+push () {
+    local USAGE=$(cat <<EOF
+USAGE: $0 ${FUNCNAME[0]} [ OPTIONS ]
+
+Update remote repo with local changes.
+
+OPTIONS:
+    -h/--help        show this message
+EOF
+    )
+
+    [ "$#" -eq 0 ] || {
+        case "$1" in
+            help|--help|-h) echou "$USAGE" ;;
+            *) ercho "${FUNCNAME[0]}: unknown argument: '$ARG'" 1 ;;
+        esac
+    }
+
+    git push
+}
+
+
+which () {
+    local USAGE=$(cat <<EOF
+USAGE: $0 ${FUNCNAME[0]} [ OPTIONS ]
+
+Print the absolute path to the configuration directory.
+
+OPTIONS:
+    -h/--help        show this message
+EOF
+    )
+
+    [ "$#" -eq 0 ] || {
+        case "$1" in
+            help|--help|-h) echou "$USAGE" ;;
+            *) ercho "${FUNCNAME[0]}: unknown argument: '$ARG'" 1 ;;
+        esac
+    }
+
+    cd "$SCRIPT_DIR/.." && pwd
 }
 
 
@@ -209,8 +441,12 @@ Supported Commands:
     install    install nix to this system
     bootstrap  install nix and apply config
     build      build a new config
-    switch     apply a built config
+    switch     build and apply a config
     uninstall  uninstall nix/config from the system
+    pull       git pull upstream changes
+    push       git push local changes upstream
+    update     update the flake locks
+    which      print the config directory path
 
 All commmands support 'help' for more information.
 EOF
@@ -218,30 +454,17 @@ EOF
 
     local CMD="${1:-}"; shift ||:
     case "${CMD:-}" in
-        install)
-            install "$@"
-            ;;
-        uninstall)
-            uninstall "$@"
-            ;;
-        bootstrap)
-            bootstrap "$@"
-            ;;
-        build)
-            build "$@"
-            ;;
-        apply)
-            apply "$@"
-            ;;
-        help|-h|--help)
-            echou "$USAGE"
-            ;;
-        ?*)
-            ercho "unknown command: '$CMD'" 1
-            ;;
-        *)
-            echou "$USAGE"
-            ;;
+        install)        install "$@" ;;
+        uninstall)      uninstall "$@" ;;
+        bootstrap)      bootstrap "$@" ;;
+        build)          build "$@" ;;
+        switch)         switch "$@" ;;
+        pull)           pull "$@" ;;
+        update)         update "$@" ;;
+        which)          which "$@" ;;
+        help|-h|--help) echou "$USAGE" ;;
+        ?*) ercho "unknown command: '$CMD'" 1 ;;
+        *)  echou "$USAGE" ;;
     esac
 }
 
