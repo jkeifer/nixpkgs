@@ -19,20 +19,25 @@ echou () {
 }
 
 
+has_nix () {
+    command -v nix > /dev/null
+}
+
+
 install () {
     local URL=https://github.com/numtide/nix-unstable-installer/releases
     local FORCE=false
     local DAEMON=true
     local USAGE=$(cat <<EOF
-USAGE: $0 install [ OPTIONS ]
+USAGE: $0 ${FUNCNAME[0]} [ OPTIONS ]
 
 Install nix to the local system.
 
 OPTIONS:
-    -h/--help:         show this message
-    -v/--version:      specify release version, default latest
-    -F/--force:        force re-run of installer
-    -s/--single-user:  install in single user mode, default false
+    -h/--help         show this message
+    -v/--version      specify release version, default latest
+    -F/--force        force re-run of installer
+    -s/--single-user  install in single user mode, default false
 
 To find available release versions see '$URL'.
 EOF
@@ -76,7 +81,7 @@ EOF
         echou "$USAGE"
     done
 
-    $FORCE || ! command -v nix > /dev/null \
+    $FORCE || ! has_nix \
         || ercho "${FUNCNAME[0]}: nix is already installed; use '-F/--force' to re-run installer" 1
 
     if [ -n "${RELEASE:-}" ]; then
@@ -85,11 +90,11 @@ EOF
         URL="$URL/latest/download/install"
     fi
 
-    #bash <(curl -L $URL) ${DAEMON:+--daemon }${FLAG:-}
+    #exec bash <(curl -L $URL) ${DAEMON:+--daemon }${FLAG:-}
     ercho "NOTICE: due to MacOS installation issues, the version of"
     ercho "the nix installer has been overriden with a pre-release pkg."
     # https://github.com/NixOS/nix/pull/4289#user-content-try-it-out
-    sh <(curl https://abathur-nix-install-tests.cachix.org/serve/yihf8zbs0jwph2rs9qfh80dnilijxdi2/install) --tarball-url-prefix https://abathur-nix-install-tests.cachix.org/serve
+    exec sh <(curl https://abathur-nix-install-tests.cachix.org/serve/yihf8zbs0jwph2rs9qfh80dnilijxdi2/install) --tarball-url-prefix https://abathur-nix-install-tests.cachix.org/serve
 }
 
 
@@ -102,7 +107,84 @@ uninstall () {
 
 
 bootstrap () {
-    ercho "${FUNCNAME[0]}: not yet implemented" 1
+    local HOSTNAME=$(hostname)
+    local USAGE=$(cat <<EOF
+USAGE: $0 ${FUNCNAME[0]} [ OPTIONS ]
+
+Build the user/system configuration.
+
+OPTIONS:
+    -h/--help        show this message
+    --home-manager*  force home-manager-only build (discovered if needed by default)
+    --darwin*        force MacOS system build (discovered if needed by default)
+    --host           hostname to use for reference configuration (default from system)
+    --switch         activate the new command upon successful build (default false)
+
+* mutually-exclusive
+EOF
+    )
+
+    . $GETOPT -n "$0: ${FUNCNAME[0]}" -o "h" -l "help,home-manager,darwin,host:,switch" -- "$@"
+
+    local TARGET SWITCH=false ARG i=0
+    while [ "$i" -lt "${#OPTS[@]}" ]; do
+        ARG="${OPTS[$i]}"
+        i=$((i+1))
+        case $ARG in
+            -h|--help)
+                echou "$USAGE"
+                ;;
+            --host)
+                HOSTNAME="${OPTS[$i]}"
+                i=$((i+1))
+                ;;
+            --home-manager)
+                [ -z "$TARGET" ] || ercho "${FUNCNAME[0]}: cannot specify multiple build targets" 1
+                TARGET=homeConfigurations
+                ;;
+            --darwin)
+                [ -z "$TARGET" ] || ercho "${FUNCNAME[0]}: cannot specify multiple build targets" 1
+                TARGET=darwinConfigurations
+                ;;
+            --switch)
+                SWITCH=true
+                ;;
+            --)
+                break
+                ;;
+            *)
+                ercho "${FUNCNAME[0]}: unknown option: '$ARG'" 1
+                ;;
+        esac
+    done
+
+    # handle unknown arguments (allowing 'help')
+    i=0
+    while [ "$i" -lt "${#ARGS[@]}" ]; do
+        ARG="${OPTS[$i]}"
+        i=$((i+1))
+        [ "$ARG" == "help" ] || ercho "${FUNCNAME[0]}: unknown argument: '$ARG'" 1
+        echou "$USAGE"
+    done
+
+    has_nix || ercho "nix is not on the path; do you need to run the install command first?" 1
+
+    [ -n "$TARGET" ] || {
+        TARGET=homeConfigurations
+        [ "$(uname -s)" != "Darwin" ] || TARGET=darwinConfigurations
+    }
+
+    cd $SCRIPT_DIR/..
+    nix build ".#${TARGET}.${HOSTNAME}.config.system.build.toplevel" -v --experimental-features "nix-command flakes"
+
+    if  $SWITCH; then
+        ./result/activate-user
+        sudo ./result/activate
+    else
+        ercho "NOTICE: config not activated. Run again with '--switch' or manually run the following:"
+        ercho "    $(pwd)/result/activate-user"
+        ercho "    sudo $(pwd)/result/activate"
+    fi
 }
 
 
@@ -111,7 +193,7 @@ build () {
 }
 
 
-apply () {
+switch () {
     ercho "${FUNCNAME[0]}: not yet implemented" 1
 }
 
@@ -123,12 +205,12 @@ USAGE: $0 COMMAND [ COMMAND_OPTS ] [ COMMAND_ARGS ]
 nix system managment utility
 
 Supported Commands:
-    help:       show this message
-    install:    install nix to this system
-    bootstrap:  install nix and apply config
-    build:      build a new config
-    apply:      apply a built config
-    uninstall:  uninstall nix/config from the system
+    help       show this message
+    install    install nix to this system
+    bootstrap  install nix and apply config
+    build      build a new config
+    switch     apply a built config
+    uninstall  uninstall nix/config from the system
 
 All commmands support 'help' for more information.
 EOF
