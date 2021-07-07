@@ -35,6 +35,17 @@
   outputs = inputs@{ self, nixpkgs, stable, darwin, home-manager, flake-utils, ... }:
     let
       overlays = [ ];
+      nixpkgsConfig = {
+        config = {
+          allowUnsupportedSystem = true;
+          allowUnfree = true;
+          allowBroken = false;
+        };
+        overlays = [ ];
+      };
+ 
+
+      supportedSystems = [ "aarch64-darwin" "x86_64-darwin" "x86_64-linux" ];
 
       inherit (darwin.lib) darwinSystem;
       inherit (home-manager.lib) homeManagerConfiguration;
@@ -101,6 +112,18 @@
           }];
         };
 
+        toltecal = mkDarwinConfig {
+          username = "jkeifer";
+          hostname = "toltecal";
+          system   = "aarch64-darwin";
+          extraModules = [{
+            networking.knownNetworkServices = [
+              "Wi-Fi"
+              "USB 10/100/1000 LAN"
+            ];
+          }];
+        };
+
         # config for github CI workflow
         github-ci = mkDarwinConfig {
           username = "runner";
@@ -120,5 +143,7 @@
       };
 
     };
-  };
+  } // flake-utils.lib.eachSystem supportedSystems (system: {
+      legacyPackages = import nixpkgs { inherit system; inherit (nixpkgsConfig) config overlays; };
+  });
 }
