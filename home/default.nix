@@ -50,6 +50,7 @@
       (pkgs.nerdfonts.override { fonts = [ "FiraCode" ]; })
 
       # utils
+      awscli2
       arping
       coreutils-full
       curl
