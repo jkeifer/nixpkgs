@@ -119,7 +119,7 @@ uninstall () {
 
 
 bootstrap () {
-    local HOSTNAME=$(hostname)
+    local HOSTNAME=$(hostname -s)
     local USAGE=$(cat <<EOF
 USAGE: $0 ${FUNCNAME[0]} [ OPTIONS ]
 
@@ -217,7 +217,7 @@ switch () {
 
 _build () {
     local ACTION="${1}"; shift ||:
-    local HOSTNAME=$(hostname)
+    local HOSTNAME=$(hostname -s)
     local USAGE=$(cat <<EOF
 USAGE: $0 ${ACTION} [ OPTIONS ]
 
