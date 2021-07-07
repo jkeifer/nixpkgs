@@ -194,7 +194,7 @@ EOF
     cd "$SCRIPT_DIR/.."
     nix build ".#${TARGET}.${HOSTNAME}.config.system.build.toplevel" -v --experimental-features "nix-command flakes"
 
-    if  $SWITCH; then
+    if $SWITCH; then
         ./result/activate-user
         sudo ./result/activate
     else
@@ -300,7 +300,8 @@ EOF
 
     cd "$SCRIPT_DIR/.."
     $CMD $ACTION --flake ".#${HOSTNAME}"
-    ercho "${ACTION}: NOTICE: result built but not activated. Run the 'switch' command to apply it."
+    [ "${ACTION}" == "switch" ] || \
+        ercho "${ACTION}: NOTICE: result built but not activated. Run the 'switch' command to apply it."
 }
 
 
