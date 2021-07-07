@@ -35,6 +35,7 @@ in {
     "secretive"
     "slack"
     "wireshark"
+    "zoom"
   ];
 
   # Configuration related to casks
