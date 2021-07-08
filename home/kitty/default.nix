@@ -27,6 +27,8 @@ in
       macos_option_as_alt = "yes";
       confirm_os_window_close = 1;
 
+      cursor_blink_interval = 0;
+
       # Tab bar
       tab_bar_edge = "top";
       tab_bar_style = "powerline";
