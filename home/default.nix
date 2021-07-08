@@ -59,6 +59,7 @@
       findutils
       gawk
       ghc
+      glab
       gnugrep
       gnused
       hugo
