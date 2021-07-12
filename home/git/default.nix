@@ -32,8 +32,8 @@
       {
         condition = "gitdir:~/e84/";
         contents = {
-          user.name = "";
-          usern.email = "";
+          user.name = "jkeifer";
+          user.email = "jkeifer@element84.com";
         };
       }
       {
