@@ -29,6 +29,7 @@
       bashInteractive_5
       coreutils
       curl
+      fish
       git
       kitty
       python3
@@ -37,7 +38,7 @@
       zsh
     ];
 
-    shells = [ pkgs.bashInteractive pkgs.zsh ];
+    shells = [ pkgs.bashInteractive pkgs.zsh pkgs.fish ];
 
     # https://github.com/nix-community/home-manager/issues/423
     variables = {
