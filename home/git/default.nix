@@ -19,6 +19,8 @@
       ".DS_Store"
       "_build/"
       "shell.nix"
+      ".direnv/"
+      ".envrc"
     ];
 
     includes = [
