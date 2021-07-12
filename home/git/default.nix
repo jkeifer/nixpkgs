@@ -17,6 +17,8 @@
 
     ignores = [
       ".DS_Store"
+      "_build/"
+      "shell.nix"
     ];
 
     includes = [
