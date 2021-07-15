@@ -9,3 +9,12 @@ rmhk() {
     local _KNOWN_HOSTS=${1:-/Users/${USER}/.ssh/known_hosts}
     gsed "${_LINENUM}d" -i'.bak' ${_KNOWN_HOSTS}
 }
+
+title-window() {
+    echo -n -e "\033]0;$@\007"
+}
+
+repo-name() {
+    local name="$(basename "$(git rev-parse --show-toplevel)")"
+    [ -z "$name" ] || echo "$name"
+}
