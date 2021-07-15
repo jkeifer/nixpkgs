@@ -2,10 +2,10 @@ HYPHEN_INSENSITIVE="true"
 
 # TODO: not sure which of these I need or can move into nix
 ## make autocomplete more bash-like
-#setopt nomenucomplete
-#setopt noautomenu
-#setopt bashautolist
-#setopt globdots
+setopt nomenucomplete
+setopt noautomenu
+setopt bashautolist
+setopt globdots
 #
 ## history option overrides
 #setopt nosharehistory
@@ -80,6 +80,10 @@ zinit wait'0c' lucid light-mode for \
 zinit light-mode wait"1" lucid as"completion" for \
   zsh-users/zsh-completions \
   spwhitt/nix-zsh-completions
+
+
+# tab completion matching is "fuzzy"
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z-_}={A-Za-z_-}' 'r:|=*' 'l:|=* r:|=*'
 
 
 # In case we want to test config changes
