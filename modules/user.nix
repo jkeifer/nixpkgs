@@ -12,6 +12,10 @@ in {
       type = types.str;
       default = "Jarrett Keifer";
     };
+    shell = mkOption {
+      type = types.str;
+      default = "zsh";
+    };
   };
 
 
@@ -19,7 +23,7 @@ in {
     users.users.${cfg.name} = {
       description = cfg.description;
       home = "${ if pkgs.stdenvNoCC.isDarwin then "/Users" else "/home" }/${cfg.name}";
-      shell = pkgs.zsh;
+      shell = pkgs.${shell};
     };
   };
 }
