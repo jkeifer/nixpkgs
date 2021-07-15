@@ -30,6 +30,10 @@
       url = "github:nix-community/home-manager/master";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    zinit = {
+      url = "github:zdharma/zinit/master";
+      flake = false;
+    };
   };
 
   outputs = inputs@{ self, nixpkgs, stable, darwin, home-manager, flake-utils, ... }:
@@ -43,7 +47,7 @@
         };
         overlays = [ ];
       };
- 
+
 
       supportedSystems = [ "aarch64-darwin" "x86_64-darwin" "x86_64-linux" ];
 

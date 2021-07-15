@@ -1,7 +1,6 @@
-{  pkgs, ... }:
+{ inputs, pkgs, ... }:
 let
   functions = builtins.readFile ./functions.sh;
-  zshExtra = builtins.readFile ./extra.zsh;
   aliases = {
     ls = "ls -GpA";
     cat = "bat";
@@ -13,21 +12,56 @@ let
     airport = "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport";
   };
 in {
+  home.file.".zinit/bin" = {
+    source = inputs.zinit;
+    recursive = true;
+  };
+
   programs = {
     bash = {
       enable = true;
       shellAliases = aliases;
     };
 
+    starship = {
+      enable = true;
+      enableZshIntegration = false;
+      settings = {
+        # See docs here: https://starship.rs/config/
+        directory.fish_style_pwd_dir_length = 1; # turn on fish directory truncation
+        time.disabled = false;
+      };
+    };
+
+    fish = {
+      enable = true;
+      shellAliases = with pkgs; {
+        ":q" = "echo 'hey stupid, this is not vim'";
+        cat = "${bat}/bin/bat";
+        g = "${gitAndTools.git}/bin/git";
+        la = "ll -a";
+        ll = "ls -l --time-style long-iso --icons";
+        ls = "${exa}/bin/exa";
+      };
+      shellInit = ''
+        set -U fish_term24bit 1
+      '';
+      interactiveShellInit = ''
+        set -g fish_greeting ""
+      '';
+    };
+
     fzf = {
       enable = true;
-      enableBashIntegration = true;
-      enableZshIntegration = true;
+      enableZshIntegration = false;
     };
 
     zsh = {
       enable = true;
-      enableCompletion = true;
+      enableCompletion = false;
+
+      # disable completion as we handle it in init
+      completionInit = [ ];
 
       history = {
         expireDuplicatesFirst = true;
@@ -40,16 +74,16 @@ in {
         ignoreSpace = true;
         share = false;
       };
+      initExtraBeforeCompInit = ''
+        source ~/.zinit/bin/zinit.zsh
+      '';
       initExtra = ''
         ${functions}
-        source ${pkgs.zsh-powerlevel10k}/share/zsh-powerlevel10k/powerlevel10k.zsh-theme
-        ${zshExtra}
+        ${builtins.readFile ./config.zsh}
       '';
       shellAliases = aliases;
     };
   };
 
-  home.file.".p10k.zsh".source = ./.p10k.zsh;
-
-  #environment.pathsToLink = [ "/share/zsh" ];
+  xdg.configFile."zsh/p10k.zsh".text = builtins.readFile ./p10k.zsh;
 }

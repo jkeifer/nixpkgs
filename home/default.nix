@@ -79,8 +79,8 @@
       tree
       watch
       wget
+      zinit
       zsh
-      zsh-powerlevel10k
 
       #comma # run software from without installing it
       #lorri # improve `nix-shell` experience in combination with `direnv`

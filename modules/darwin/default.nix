@@ -44,6 +44,8 @@
     variables = {
       TERMINFO_DIRS = "${pkgs.kitty.terminfo.outPath}/share/terminfo";
     };
+
+    pathsToLink = [ "/share/zsh" ];
   };
 
   programs.nix-index.enable = true;

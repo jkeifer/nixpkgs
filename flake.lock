@@ -114,7 +114,8 @@
         "home-manager": "home-manager",
         "nixpkgs": "nixpkgs",
         "spacemacs": "spacemacs",
-        "stable": "stable"
+        "stable": "stable",
+        "zinit": "zinit"
       }
     },
     "spacemacs": {
@@ -147,6 +148,23 @@
         "owner": "nixos",
         "ref": "nixos-21.05",
         "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "zinit": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1623504918,
+        "narHash": "sha256-gFTCKbZ+2RL6YfxBI4UwuDrVIwQbu4uB+Av643AKdtY=",
+        "owner": "zdharma",
+        "repo": "zinit",
+        "rev": "f25d483eb5415f0e30b76fd0f27794fc8fbeeb68",
+        "type": "github"
+      },
+      "original": {
+        "owner": "zdharma",
+        "ref": "master",
+        "repo": "zinit",
         "type": "github"
       }
     }
