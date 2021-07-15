@@ -21,6 +21,7 @@
       "shell.nix"
       ".direnv/"
       ".envrc"
+      "*.swp"
     ];
 
     includes = [
