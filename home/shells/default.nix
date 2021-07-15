@@ -58,6 +58,7 @@ in {
     zsh = {
       enable = true;
       enableCompletion = false;
+      dotDir = ".config/zsh";
 
       # disable completion as we handle it in init
       completionInit = [ ];
