@@ -42,6 +42,9 @@ in {
       # `home-manager` currently has issues adding them to `~/Applications`
       # Issue: https://github.com/nix-community/home-manager/issues/1341
       "kitty"
+      # this one is a mess but it can be helpful:
+      # https://github.com/whomwah/qlstephen
+      "qlstephen"
       "secretive"
       "slack"
       "wireshark"
