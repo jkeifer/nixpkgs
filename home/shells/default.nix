@@ -53,7 +53,6 @@ in {
 
     fzf = {
       enable = true;
-      enableZshIntegration = false;
     };
 
     zsh = {
