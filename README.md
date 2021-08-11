@@ -163,7 +163,8 @@ toltecal = mkDarwinConfig {
 };
 ```
 
-And if we run `nix flake show` we can see the output provided by the real flake.nix:
+And if we run `nix flake show` we can see the top-level (and some second-level)
+outputs provided by the real flake.nix:
 
 ```
 ❯ nix flake show
