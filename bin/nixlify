@@ -461,6 +461,7 @@ EOF
         build)          build "$@" ;;
         switch)         switch "$@" ;;
         pull)           pull "$@" ;;
+        push)           push "$@" ;;
         update)         update "$@" ;;
         which)          which "$@" ;;
         help|-h|--help) echou "$USAGE" ;;
