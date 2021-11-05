@@ -148,6 +148,6 @@
 
     };
   } // flake-utils.lib.eachSystem supportedSystems (system: {
-      legacyPackages = import nixpkgs { inherit system; inherit (nixpkgsConfig) config overlays; };
+      pkgs = import nixpkgs { inherit system; inherit (nixpkgsConfig) config overlays; };
   });
 }
