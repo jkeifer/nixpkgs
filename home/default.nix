@@ -65,13 +65,16 @@
       glab
       gnugrep
       gnused
+      gvproxy
       hugo
       jq
       mtr
-      netcat
+      # disabled due to a libressl build test issue
+      #netcat
       nmap
       qemu
       pandoc
+      podman
       ripgrep
       rsync
       socat
@@ -79,6 +82,7 @@
       tree
       watch
       wget
+      xz
       zinit
       zsh
 

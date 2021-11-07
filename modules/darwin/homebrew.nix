@@ -1,15 +1,15 @@
-{ config, lib, ... }:
+{ config, lib, pkgs, ... }:
 
 let
   mkIfCaskPresent = cask: lib.mkIf (lib.any (x: x == cask) config.homebrew.casks);
+  brewBinPrefix = if pkgs.system == "aarch64-darwin" then "/opt/homebrew/bin" else "/usr/local/bin";
 in {
   homebrew = {
     enable = true;
     autoUpdate = true;
     cleanup = "zap";
 
-    # TODO: make this dependent on system value
-    brewPrefix = "/opt/homebrew/bin";
+    brewPrefix = brewBinPrefix;
 
     global = {
       brewfile = true;
@@ -39,9 +39,6 @@ in {
       "iterm2"
       "firefox"
       "google-chrome"
-      # `home-manager` currently has issues adding them to `~/Applications`
-      # Issue: https://github.com/nix-community/home-manager/issues/1341
-      "kitty"
       # this one is a mess but it can be helpful:
       # https://github.com/whomwah/qlstephen
       "qlstephen"

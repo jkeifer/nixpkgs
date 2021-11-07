@@ -62,7 +62,7 @@ in
       map cmd+alt+right next_tab
       map cmd+alt+left  previous_tab
       map cmd+alt+shift+right  move_tab_forward
-      map cmd+alt+shift+left,  move_tab_backward
+      map cmd+alt+shift+left   move_tab_backward
     '';
 
     #extras.useSymbolsFromNerdFont = "JetBrainsMono Nerd Font";

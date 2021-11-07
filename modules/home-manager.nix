@@ -1,9 +1,9 @@
-{ inputs, config, ... }: {
+{ config, spacemacs, zinit, ... }: {
   home-manager = {
     useGlobalPkgs = true;
     useUserPackages = true;
     backupFileExtension = "backup";
-    extraSpecialArgs = { inherit inputs; };
+    extraSpecialArgs = { inherit spacemacs zinit; };
   };
   # TODO: consider if this should be moved into the import
   # so other things like environment and whatnot can be used

@@ -1,4 +1,4 @@
-{ inputs, pkgs, ... }:
+{ pkgs, zinit, ... }:
 let
   functions = builtins.readFile ./functions.sh;
   aliases = {
@@ -12,8 +12,13 @@ let
     airport = "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport";
   };
 in {
+  home.sessionPath = [
+    "/opt/homebrew/bin"
+    "/opt/homebrew/sbin"
+  ];
+
   home.file.".zinit/bin" = {
-    source = inputs.zinit;
+    source = zinit;
     recursive = true;
   };
 

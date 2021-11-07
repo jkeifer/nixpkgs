@@ -1,4 +1,4 @@
-{ inputs, config, lib, pkgs, ... }: {
+{ inputs, config, lib, pkgs, spacemacs, zinit, ... }: {
   imports = [
     # Minimal config of Nix related options and shells
     ./bootstrap.nix
@@ -9,8 +9,6 @@
     # Other nix-darwin configuration
     ./homebrew.nix
     ./defaults.nix
-
-    ../home-manager.nix
   ];
 
   # For more on the directives provided by nix-darwin:
@@ -31,7 +29,6 @@
       curl
       fish
       git
-      kitty
       python3
       wget
       vim
@@ -39,6 +36,7 @@
     ];
 
     shells = [ pkgs.bashInteractive pkgs.zsh pkgs.fish ];
+    loginShell = pkgs.zsh;
 
     # https://github.com/nix-community/home-manager/issues/423
     variables = {

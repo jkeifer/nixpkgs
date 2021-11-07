@@ -4,6 +4,6 @@
   # Aliases config imported in flake.
   programs.gh = {
     enable = true;
-    gitProtocol = "ssh";
+    settings.gitProtocol = "ssh";
   };
 }
