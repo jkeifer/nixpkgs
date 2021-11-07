@@ -201,7 +201,7 @@ parse_opts_args () {
         ARG=${!ARG_INDEX}
         case $ARG in
             --)
-                ARGS="$ARGS ${@:$ARG_INDEX+1}"
+                ARGS="${ARGS:+$ARGS }${@:$ARG_INDEX+1}"
                 break
                 ;;
             -*)

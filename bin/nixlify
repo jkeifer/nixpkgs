@@ -87,7 +87,7 @@ EOF
     # handle unknown arguments (allowing 'help')
     i=0
     while [ "$i" -lt "${#ARGS[@]}" ]; do
-        ARG="${OPTS[$i]}"
+        ARG="${ARGS[$i]}"
         i=$((i+1))
         [ "$ARG" == "help" ] || ercho "${FUNCNAME[0]}: unknown argument: '$ARG'" 1
         echou "$USAGE"
@@ -180,10 +180,9 @@ EOF
     # handle unknown arguments (allowing 'help')
     i=0
     while [ "$i" -lt "${#ARGS[@]}" ]; do
-        ARG="${OPTS[$i]}"
+        ARG="${ARGS[$i]}"
         i=$((i+1))
-        [ "$ARG" == "help" ] || ercho "${FUNCNAME[0]}: unknown argument: '$ARG'" 1
-        echou "$USAGE"
+        [ "$ARG" == "help" ] && echou "$USAGE"
     done
 
     has_nix || ercho "nix is not on the path; do you need to run the install command first?" 1
@@ -192,7 +191,7 @@ EOF
     [ -n "$TARGET" ] || TARGET="$(get_conf_target)"
 
     cd "$SCRIPT_DIR/.."
-    nix build ".#${TARGET}.${HOSTNAME}.config.system.build.toplevel" -v --experimental-features "nix-command flakes"
+    nix build ".#${TARGET}.${HOSTNAME}.config.system.build.toplevel" -v --experimental-features "nix-command flakes" ${ARGS:+"${ARGS[@]}"}
 
     if $SWITCH; then
         ./result/activate-user
@@ -273,10 +272,9 @@ EOF
     # handle unknown arguments (allowing 'help')
     i=0
     while [ "$i" -lt "${#ARGS[@]}" ]; do
-        ARG="${OPTS[$i]}"
+        ARG="${ARGS[$i]}"
         i=$((i+1))
-        [ "$ARG" == "help" ] || ercho "${ACTION}: unknown argument: '$ARG'" 1
-        echou "$USAGE"
+        [ "$ARG" == "help" ] && echou "$USAGE"
     done
 
     [ -n "$TARGET" ] || TARGET="$(get_conf_target)"
@@ -299,7 +297,7 @@ EOF
 
 
     cd "$SCRIPT_DIR/.."
-    $CMD $ACTION --flake ".#${HOSTNAME}"
+    $CMD $ACTION --flake ".#${HOSTNAME}" ${ARGS:+"${ARGS[@]}"}
     [ "${ACTION}" == "switch" ] || \
         ercho "${ACTION}: NOTICE: result built but not activated. Run the 'switch' command to apply it."
 }
@@ -320,7 +318,8 @@ EOF
 
     . $GETOPT -n "$0: ${FUNCNAME[0]}" -o "hf:c" -l "help,flake:,commit" -- "$@"
 
-    local FLAKES=() ARG i=0
+    local ARG i=0
+    local FLAKES=() 
     while [ "$i" -lt "${#OPTS[@]}" ]; do
         ARG="${OPTS[$i]}"
         i=$((i+1))
@@ -354,10 +353,12 @@ EOF
     done
 
     local ACTION=update UPDATES=""
-    for FLAKE in ${FLAKES[@]}; do
-        ACTION=lock
-        UPDATES="$UPDATES --update-input $FLAKE"
-    done
+    [ -z "${FLAKES:-}" ] || {
+        for FLAKE in "${FLAKES[@]}"; do
+            ACTION=lock
+            UPDATES="$UPDATES --update-input $FLAKE"
+        done
+    }
 
     cd "$SCRIPT_DIR/.."
     nix flake ${ACTION}${COMMIT:+ --commit-lock-file}${UPDATES}
