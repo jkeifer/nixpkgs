@@ -17,6 +17,9 @@ setopt norecexact
 # no -R for less
 unset LESS
 
+# set ssh agent socket if using secretive
+SECRETIVE_AUTH_SOCK="$HOME/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh"
+[ -S "$SECRETIVE_AUTH_SOCK" ] && export SSH_AUTH_SOCK="$SECRETIVE_AUTH_SOCK"
 
 # The follwing is mostly "borrow" from a config I found; see
 # https://github.com/Brettm12345/nixos-config/blob/master/modules/applications/shells/zsh/config.zsh

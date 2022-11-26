@@ -57,5 +57,5 @@ in {
 
   # Configuration related to casks
   environment.variables.SSH_AUTH_SOCK = mkIfCaskPresent "secretive"
-     "/Users/${config.user.name}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh";
+     "${config.users.users.username.home}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh";
 }
