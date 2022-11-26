@@ -13,7 +13,6 @@
     nixpkgs-master.url = "github:nixos/nixpkgs/master";
     nixos-stable.url = "github:nixos/nixpkgs/nixos-21.05";
     nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
-    nixpkgs-with-patched-kitty.url = "github:azuwis/nixpkgs/kitty";
 
     spacemacs = {
       url = "github:/syl20bnr/spacemacs/master";
@@ -35,13 +34,13 @@
       url = "github:nix-community/home-manager/master";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
-    zinit = {
-      url = "github:zdharma-continuum/zinit/master";
+    zi = {
+      url = "github:z-shell/zi/main";
       flake = false;
     };
   };
 
-  outputs = inputs@{ self, darwin, home-manager, flake-utils, spacemacs, zinit, ... }:
+  outputs = inputs@{ self, darwin, home-manager, flake-utils, spacemacs, zi, ... }:
     let
       inherit (darwin.lib) darwinSystem;
       inherit (home-manager.lib) homeManagerConfiguration;
@@ -53,14 +52,7 @@
           allowUnfree = true;
           allowBroken = false;
         };
-        overlays = self.overlays ++ singleton (
-          # Sub in x86 version of packages that don't build on Apple Silicon yet
-          final: prev: (optionalAttrs (prev.stdenv.system == "aarch64-darwin") {
-            inherit (final.pkgs-x86)
-              nix-index
-            ;
-          })
-        );
+        overlays = [ self.overlay ];
       };
 
       supportedSystems = [ "aarch64-darwin" "x86_64-darwin" "x86_64-linux" ];
@@ -91,7 +83,7 @@
               networking.computerName = hostname;
               networking.hostName = hostname;
             }];
-          specialArgs = { inherit spacemacs zinit; };
+          specialArgs = { inherit spacemacs zi; };
         };
 
       mkHomeConfig = {
@@ -107,7 +99,7 @@
           configuration = {
             imports = baseModules ++ extraModules;
           };
-          specialArgs = { inherit spacemacs zinit; };
+          specialArgs = { inherit spacemacs zi; };
         };
     in {
       # MacOS configurations
@@ -157,34 +149,39 @@
 
     };
 
-   overlays = with inputs; [
-      (
-        final: prev: ({
-          # Add access to other versions of `nixpkgs`
-          pkgs-master = import inputs.nixpkgs-master {
-            inherit (prev.stdenv) system;
-            inherit (nixpkgsConfig) config;
-          };
-          pkgs-stable = import inputs.nixpkgs-stable {
-            inherit (prev.stdenv) system;
-            inherit (nixpkgsConfig) config;
-          };
+   overlay = final: prev: ({
+        # Add access to other versions of `nixpkgs`
+        pkgs-master = import inputs.nixpkgs-master {
+          inherit (prev.stdenv) system;
+          inherit (nixpkgsConfig) config;
+        };
+        pkgs-stable = import inputs.nixpkgs-stable {
+          inherit (prev.stdenv) system;
+          inherit (nixpkgsConfig) config;
+        };
 
-          # flake input packages
-          # none
+        # packages held back
+        inherit (final.pkgs-stable)
+        ;
 
-        } // optionalAttrs (prev.stdenv.system == "aarch64-darwin") {
-          # Add access to x86 packages system is running Apple Silicon
-          pkgs-x86 = import inputs.nixpkgs-unstable { system = "x86_64-darwin"; inherit (nixpkgsConfig) config; };
+        # flake input packages
+        # none
 
-          # Get Apple Silicon version of `kitty`
-          # TODO: Remove when https://github.com/NixOS/nixpkgs/pull/137512 lands
-          inherit (inputs.nixpkgs-with-patched-kitty.legacyPackages.aarch64-darwin) kitty;
-        })
-      )
-    ];
+      } // optionalAttrs (prev.stdenv.system == "aarch64-darwin") {
+        # Add access to x86 packages system is running Apple Silicon
+        pkgs-x86 = import inputs.nixpkgs-unstable {
+          system = "x86_64-darwin";
+          inherit (nixpkgsConfig) config;
+        };
+
+        # packages that don't yet build on aarch64-darwin
+        inherit (final.pkgs-x86)
+          #nix-index
+        ;
+      });
+
 
   } // flake-utils.lib.eachSystem supportedSystems (system: {
-      legacyPackages = import inputs.nixpkgs-unstable { inherit system; inherit (nixpkgsConfig) config overlays; };
+    legacyPackages = import inputs.nixpkgs-unstable { inherit system; inherit (nixpkgsConfig) config overlays; };
   });
 }

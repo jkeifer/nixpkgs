@@ -9,6 +9,10 @@ in
   programs.kitty = {
     enable = true;
 
+    darwinLaunchOptions = [
+      "--directory=${config.home.homeDirectory}"
+    ];
+
     settings = {
       scrollback_lines = 50000;
       font_family = "Fira Code";

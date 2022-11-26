@@ -17,9 +17,10 @@
     buildCores = 8;
     maxJobs = 8;
     readOnlyStore = true;
-    nixPath = [
-      "nixpkgs=/etc/${config.environment.etc.nixpkgs.target}"
-      "home-manager=/etc/${config.environment.etc.home-manager.target}"
-    ];
+    nixPath = { nixpkgs = "$HOME/.nixpkgs/nixpkgs.nix"; };
+    #nixPath = [
+    #  "nixpkgs=/etc/${config.environment.etc.nixpkgs.target}"
+    #  "home-manager=/etc/${config.environment.etc.home-manager.target}"
+    #];
   };
 }

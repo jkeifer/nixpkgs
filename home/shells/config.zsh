@@ -6,6 +6,7 @@ setopt nomenucomplete
 setopt noautomenu
 setopt bashautolist
 setopt globdots
+setopt norecexact
 #
 ## history option overrides
 #setopt nosharehistory
@@ -27,7 +28,7 @@ test -r "$PROMPT_CACHE" && source "$PROMPT_CACHE"
 function fast-zpcompinit() {
   setopt extendedglob local_options
   autoload -Uz compinit
-  local zcompf="${ZINIT[ZCOMPDUMP_PATH]:-${ZDOTDIR:-$HOME}/.zcompdump}"
+  local zcompf="${ZI[ZCOMPDUMP_PATH]:-${ZDOTDIR:-$HOME}/.zcompdump}"
   # use a separate file to determine when to regenerate, as compinit doesn't always need to modify the compdump
   local zcompf_a="${zcompf}.augur"
 
@@ -48,8 +49,8 @@ function fast-zpcompinit() {
 }
 
 # Load immediately
-zinit ice depth=1 atload'!source ~/.config/zsh/p10k.zsh' atinit'POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true'
-zinit light romkatv/powerlevel10k
+zi ice depth=1 atload'!source ~/.config/zsh/p10k.zsh' atinit'POWERLEVEL9K_DISABLE_CONFIGURATION_WIZARD=true'
+zi light romkatv/powerlevel10k
 #source ~/.config/zsh/p10k.zsh
 
 setup-autosuggest() {
@@ -60,24 +61,24 @@ setup-autosuggest() {
 }
 
 setup-completion-generator() {
-  alias gencomp='zinit lucid nocd as"null" wait"1" atload"zinit creinstall -q _local/config-files; fast-zpcompinit" for /dev/null; gencomp'
+  alias gencomp='zi lucid nocd as"null" wait"1" atload"zi creinstall -q _local/config-files; fast-zpcompinit" for /dev/null; gencomp'
 }
 
 # Very important things
-zinit wait'0a' light-mode lucid nocompletions for \
-  atinit'ZINIT[COMPINIT_OPTS]=-C; fast-zpcompinit; zpcdreplay' atpull'fast-theme XDG:overlay' \
+zi wait'0a' light-mode lucid nocompletions for \
+  atinit'ZI[COMPINIT_OPTS]=-C; fast-zpcompinit; zpcdreplay' atpull'fast-theme XDG:overlay' \
     zdharma/fast-syntax-highlighting \
   compile'{src/*.zsh,src/strategies/*}' atinit'setup-autosuggest' atload'!_zsh_autosuggest_start' \
     zsh-users/zsh-autosuggestions
 
 # Stuff that can wait a minute
-zinit wait'0b' light-mode lucid nocompletions for \
+zi wait'0b' light-mode lucid nocompletions for \
   pick'autopair.zsh' hlissner/zsh-autopair \
 
-zinit wait'0c' lucid light-mode for \
+zi wait'0c' lucid light-mode for \
   chisui/zsh-nix-shell \
 
-zinit light-mode wait"1" lucid as"completion" for \
+zi light-mode wait"1" lucid as"completion" for \
   zsh-users/zsh-completions \
   spwhitt/nix-zsh-completions
 

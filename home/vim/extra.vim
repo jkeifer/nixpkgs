@@ -55,7 +55,7 @@ set tm=500
 
 " Syntax highlighting
 syntax enable
-colorscheme peachpuff
+colorscheme default
 
 " Formats
 set encoding=utf8

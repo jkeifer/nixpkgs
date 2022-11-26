@@ -6,14 +6,16 @@ let
 in {
   homebrew = {
     enable = true;
-    autoUpdate = true;
-    cleanup = "zap";
+    onActivation = {
+      autoUpdate = true;
+      cleanup = "zap";
+      upgrade = true;
+    };
 
     brewPrefix = brewBinPrefix;
 
     global = {
       brewfile = true;
-      noLock = true;
     };
 
     taps = [
@@ -36,12 +38,12 @@ in {
     casks = [
       "1password"
       "1password-cli"
-      "iterm2"
       "firefox"
       "google-chrome"
       # this one is a mess but it can be helpful:
       # https://github.com/whomwah/qlstephen
       "qlstephen"
+      "raycast"
       "secretive"
       "slack"
       "wireshark"

@@ -1,4 +1,4 @@
-{ pkgs, zinit, ... }:
+{ pkgs, zi, ... }:
 let
   functions = builtins.readFile ./functions.sh;
   aliases = {
@@ -17,8 +17,8 @@ in {
     "/opt/homebrew/sbin"
   ];
 
-  home.file.".zinit/bin" = {
-    source = zinit;
+  home.file.".zi/bin" = {
+    source = zi;
     recursive = true;
   };
 
@@ -80,7 +80,7 @@ in {
         share = false;
       };
       initExtraBeforeCompInit = ''
-        source ~/.zinit/bin/zinit.zsh
+        source ~/.zi/bin/zi.zsh
       '';
       initExtra = ''
         ${functions}

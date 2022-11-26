@@ -1,4 +1,4 @@
-{ inputs, config, lib, pkgs, spacemacs, zinit, ... }: {
+{ inputs, config, lib, pkgs, spacemacs, zi, ... }: {
   imports = [
     # Minimal config of Nix related options and shells
     ./bootstrap.nix
@@ -37,12 +37,6 @@
 
     shells = [ pkgs.bashInteractive pkgs.zsh pkgs.fish ];
     loginShell = pkgs.zsh;
-
-    # https://github.com/nix-community/home-manager/issues/423
-    variables = {
-      TERMINFO_DIRS = "${pkgs.kitty.terminfo.outPath}/share/terminfo";
-    };
-
     pathsToLink = [ "/share/zsh" ];
   };
 

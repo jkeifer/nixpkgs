@@ -55,19 +55,24 @@
       # utils
       awscli2
       arping
+      colima
       coreutils-full
       curl
+      docker
       exa
       fd
       findutils
       gawk
+      gdb
       ghc
       glab
+      gojq
+      gron
       gnugrep
       gnused
       gvproxy
       hugo
-      jq
+      kitty
       mtr
       # disabled due to a libressl build test issue
       #netcat
@@ -83,7 +88,7 @@
       watch
       wget
       xz
-      zinit
+      zi
       zsh
 
       #comma # run software from without installing it
@@ -100,6 +105,9 @@
     # a list of state version changes in each release.
     stateVersion = "21.05";
 
+    sessionVariables = {
+      TERMINFO_DIRS = "${pkgs.kitty.terminfo.outPath}/share/terminfo";
+    };
   };
 
   targets.darwin.defaults = {

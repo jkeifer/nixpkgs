@@ -10,7 +10,7 @@
     NSNavPanelExpandedStateForSaveMode = true;
     NSNavPanelExpandedStateForSaveMode2 = true;
     "com.apple.sound.beep.feedback" = 0;
-    "com.apple.trackpad.scaling" = "0.875";
+    "com.apple.trackpad.scaling" = 0.875;
     "com.apple.trackpad.enableSecondaryClick" = true;
   };
 
