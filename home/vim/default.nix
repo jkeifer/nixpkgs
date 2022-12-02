@@ -1,4 +1,4 @@
-{ ... }:
+{ pkgs, ... }:
 let
   extra = builtins.readFile ./extra.vim;
 in {
@@ -10,6 +10,7 @@ in {
     # if needing plugins in the future
     # find supported list: nix-env -f '<nixpkgs>' -qaP -A vimPlugins
     # then add them here
-    plugins = [ ];
+    plugins = with pkgs.vimPlugins; [
+    ];
   };
 }

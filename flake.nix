@@ -129,6 +129,18 @@
           }];
         };
 
+        oxomoco = mkDarwinConfig {
+          username = "jkeifer";
+          hostname = "oxomoco";
+          system   = "aarch64-darwin";
+          extraModules = [{
+            networking.knownNetworkServices = [
+              "Wi-Fi"
+              "USB 10/100/1000 LAN"
+            ];
+          }];
+        };
+
         # config for github CI workflow
         github-ci = mkDarwinConfig {
           username = "runner";

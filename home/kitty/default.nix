@@ -50,8 +50,8 @@ in
       map cmd+v        paste_from_clipboard
 
       # Window management
-      map cmd+d         new_window
-      map cmd+alt+d     new_window_with_cwd
+      map cmd+d         launch --cwd=current --type=window
+      map cmd+enter     launch --cwd=current --type=window
       map cmd+n         new_os_window
       map cmd+w         close_window
       map cmd+right     next_window
@@ -61,7 +61,7 @@ in
       map cmd+l         next_layout
 
       # Tab management
-      map cmd+t         new_tab
+      map cmd+t         launch --cwd=current --type=tab
       map cmd+alt+q     close_tab
       map cmd+alt+right next_tab
       map cmd+alt+left  previous_tab
