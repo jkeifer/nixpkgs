@@ -3,7 +3,7 @@
 
 # this should use realpath, but the MacOS BSD version
 # is a joke and doesn't work for these purposes
-SCRIPT_DIR="$(python -c "import os; import sys; print(os.path.realpath('${BASH_SOURCE[0]%/*}'))")"
+SCRIPT_DIR="$(python3 -c "import os; import sys; print(os.path.realpath('${BASH_SOURCE[0]%/*}'))")"
 GETOPT="$SCRIPT_DIR/getopt"
 
 # Configuration Targets
