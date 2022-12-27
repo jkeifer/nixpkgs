@@ -66,12 +66,12 @@
       gdb
       ghc
       glab
-      gojq
       gron
       gnugrep
       gnused
       gvproxy
       hugo
+      jq
       kitty
       mtr
       # disabled due to a libressl build test issue
