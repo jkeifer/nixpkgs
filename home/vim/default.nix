@@ -11,6 +11,14 @@ in {
     # find supported list: nix-env -f '<nixpkgs>' -qaP -A vimPlugins
     # then add them here
     plugins = with pkgs.vimPlugins; [
+      ale
+      coc-eslint
+      coc-json
+      coc-markdownlint
+      coc-pyright
+      coc-rust-analyzer
+      coc-tsserver
+      coc-yaml
     ];
   };
 }
