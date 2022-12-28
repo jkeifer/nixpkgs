@@ -62,7 +62,7 @@
         hostname,
         system ? "x86_64-darwin",
         nixpkgs ? nixpkgsConfig,
-        baseModules ?  [
+        baseModules ? [
           home-manager.darwinModules.home-manager
           ./modules/darwin
           ./modules/home-manager.nix
@@ -138,6 +138,9 @@
               "Wi-Fi"
               "USB 10/100/1000 LAN"
             ];
+            homebrew.masApps = {
+              msRDP = 1295203466;
+            };
           }];
         };
 
