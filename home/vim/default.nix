@@ -15,6 +15,7 @@ in {
       coc-eslint
       coc-json
       coc-markdownlint
+      coc-nvim
       coc-pyright
       coc-rust-analyzer
       coc-tsserver

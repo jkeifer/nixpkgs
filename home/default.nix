@@ -74,6 +74,7 @@
       jq
       kitty
       mtr
+      nodejs
       # disabled due to a libressl build test issue
       #netcat
       nmap
