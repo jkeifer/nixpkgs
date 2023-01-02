@@ -1,5 +1,7 @@
 { ... }: {
   system.defaults.NSGlobalDomain = {
+    AppleInterfaceStyle = "Dark";
+    AppleMenuBarVisibleInFullscreen = true;
     AppleShowAllExtensions = true;
     AppleShowScrollBars = "Always";
     AppleTemperatureUnit = "Fahrenheit";
@@ -23,11 +25,13 @@
 
   system.defaults.dock = {
     autohide = true;
+    autohide-delay = 100.0;
     expose-group-by-app = false;
     mru-spaces = false;
+    orientation = "right";
     static-only = true;
     show-recents = false;
-    tilesize = 32;
+    tilesize = 16;
   };
 
   system.defaults.loginwindow = {
