@@ -15,8 +15,8 @@
   # https://daiderd.com/nix-darwin/manual/index.html
 
   networking.dns = [
-    "1.1.1.1"
-    "8.8.8.8"
+    "1.1.1.2"
+    "1.0.0.2"
   ];
 
   environment = {
