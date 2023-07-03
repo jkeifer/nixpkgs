@@ -87,7 +87,7 @@ zi light-mode wait"1" lucid as"completion" for \
 
 
 # tab completion matching is "fuzzy"
-zstyle ':completion:*' matcher-list 'm:{a-zA-Z-_}={A-Za-z_-}' 'r:|=*' 'l:|=* r:|=*'
+zstyle ':completion:*' matcher-list 'm:{a-z-_}={A-Z_-}' 'r:|=*' 'l:|=* r:|=*'
 
 
 # In case we want to test config changes
