@@ -122,5 +122,9 @@ endfunction
 :inoremap <Tab> <C-R>=Tab_Or_Complete()<CR>
 :set dictionary="/usr/dict/words"
 
+"Language-specific settings
+au BufNewFile,BufRead *.go setlocal noexpandtab tabstop=4 shiftwidth=4 softtabstop=4
+au BufNewFile,BufRead *.sql setlocal tabstop=2 shiftwidth=2 softtabstop=2
+
 " coc stuff
 inoremap <silent><expr> <CR> coc#pum#visible() ? coc#pum#confirm() : "\<CR>"
