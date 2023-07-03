@@ -73,14 +73,14 @@
       hugo
       jq
       kitty
+      kubectl
       mtr
-      nodejs
       # disabled due to a libressl build test issue
       #netcat
       nmap
+      nodejs
       qemu
       pandoc
-      podman
       ripgrep
       rsync
       socat
