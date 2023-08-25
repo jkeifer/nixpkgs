@@ -8,10 +8,10 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
 
-    nixpkgs-stable.url = "github:nixos/nixpkgs/nixpkgs-21.05-darwin";
+    nixpkgs-stable.url = "github:nixos/nixpkgs/nixpkgs-23.05-darwin";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     nixpkgs-master.url = "github:nixos/nixpkgs/master";
-    nixos-stable.url = "github:nixos/nixpkgs/nixos-21.05";
+    nixos-stable.url = "github:nixos/nixpkgs/nixos-23.05";
     nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
     spacemacs = {
@@ -45,6 +45,7 @@
       inherit (darwin.lib) darwinSystem;
       inherit (home-manager.lib) homeManagerConfiguration;
       inherit (inputs.nixpkgs-unstable.lib) optionalAttrs singleton;
+      inherit (inputs.nixos-unstable.lib) nixosSystem;
 
       nixpkgsConfig = rec {
         config = {
@@ -55,7 +56,7 @@
         overlays = [ self.overlay ];
       };
 
-      supportedSystems = [ "aarch64-darwin" "x86_64-darwin" "x86_64-linux" ];
+      supportedSystems = [ "aarch64-darwin" "x86_64-darwin" "x86_64-linux" "aarch64-linux" ];
 
       mkDarwinConfig = {
         username,
@@ -99,6 +100,34 @@
           configuration = {
             imports = baseModules ++ extraModules;
           };
+          specialArgs = { inherit spacemacs zi; };
+        };
+
+      mkNixosConfig = {
+        username,
+        hostname,
+        system ? "x86_64-linux",
+        nixpkgs ? nixpkgsConfig,
+        baseModules ? [
+          home-manager.nixosModules.home-manager
+          ./modules/nixos
+        ],
+        extraModules ? [],
+      }:
+        nixosSystem {
+          inherit system;
+          modules = baseModules
+            ++ [ ./modules/hardware/${hostname}.nix ]
+            ++ extraModules
+            ++ [{
+              nixpkgs = nixpkgsConfig;
+              nix.registry.my.flake = self;
+              user = {
+                enable = true;
+                name = username;
+              };
+              networking.hostName = hostname;
+            }];
           specialArgs = { inherit spacemacs zi; };
         };
     in {
@@ -145,7 +174,7 @@
         };
 
         # config for github CI workflow
-        github-ci = mkDarwinConfig {
+        github-ci-darwin = mkDarwinConfig {
           username = "runner";
           extraModules = [
             ({ lib, ... }: { homebrew.enable = lib.mkForce false; })
@@ -154,15 +183,24 @@
 
       };
 
-    # home-manager configurations
-    homeConfigurations = {
-
-      # Build and activate with `nix build .#vm.activationPackage; ./result/activate`
-      vm = mkHomeConfig {
-        username = "jak";
+      nixosConfigurations = {
+        "huijatoo" = mkNixosConfig {
+          username = "jkeifer";
+          hostname = "huijatoo";
+          system = "aarch64-linux";
+          extraModules = [{}];
+        };
       };
 
-    };
+      # home-manager configurations
+      homeConfigurations = {
+
+        # Build and activate with `nix build .#vm.activationPackage; ./result/activate`
+        vm = mkHomeConfig {
+          username = "jak";
+        };
+
+      };
 
    overlay = final: prev: ({
         # Add access to other versions of `nixpkgs`
