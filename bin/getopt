@@ -1,4 +1,30 @@
-#!/bin/bash -eu
+#!/usr/bin/env bash
+#
+# Released under the MIT license at
+# https://gist.github.com/jkeifer/62ab2ce30254923f2ecf791f61871490
+#
+# Copyright 2021 - 2023 Jarrett Keifer <jkeifer0@gmail.com>
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the “Software”), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+
+set -euo pipefail
 
 
 # check if we have been sourced
@@ -8,6 +34,8 @@
 
 declare -a OPTS
 declare -a ARGS
+OPTS=()
+ARGS=()
 
 
 usage () {
@@ -36,12 +64,12 @@ EXAMPLE
 Running:
 
     $0 -o "r:s::t" --longoptions "redo:,stop::,time" -- \\
-        -s -tr hello world "" --redo="some routine" "another routine" --stop yes --time abcd
+        -s -tr hello world "" --redo="some routine" "another routine" --stop yes --time abcd -- --and 'other input'
 
 Yields:
 
     -s
-    
+
     -t
     -r
     hello
@@ -52,20 +80,22 @@ Yields:
     --time
     --
     world
-    
+
     another routine
     abcd
+    --and
+    other input
 
 The output can be parsed using a while loop with a case statement
 matching on each option name, like getopt. Add a case for
 '--' and break parsing, leaving the positional arguments in
 order.
 
-Note that newlines in the arguments are not supported. If such
-support is required, this script can also be sourced, which will
-provide access to two bash arrays '\$OPTS' and '\$ARGS'. The
-'\$OPTS' can similarly be iterated with a case statement like
-the output above, but will retain newlines any array elements.
+Note that newlines in the arguments are not supported. If such support is
+required, this script can also be sourced, which will provide access to two
+bash arrays: '\$OPTS' and '\$ARGS'.  The '\$OPTS' can similarly be iterated
+with a case statement like the output above, but will retain newlines any array
+elements.
 EOF
 }
 
@@ -79,12 +109,14 @@ get_opt_value () {
         return
     }
 
-    # else we want to use the second value 
+    # else we want to use the second value
     # option like "-r something", but not "-r -t"
-    [ "${2:0:1}" == "-" ] && VAL="" || {
+    if [ "${2:0:1}" == "-" ]; then
+        VAL=""
+    else
         VAL="$2"
         ARG_INDEX=$((ARG_INDEX+1))
-    }
+    fi
 }
 
 
@@ -96,20 +128,20 @@ parse_long_opt () {
     local FOUND=false
 
     local OPT=${WORD1%%=*}
-    for LOPT in ${LOPTS[@]}; do
+    for LOPT in "${LOPTS[@]}"; do
         [ "$OPT" == "${PREFIX}${LOPT%%:*}" ] || continue
         FOUND=true
         # grep to match just the colons at end of matched ref long opt, if any
-        case "$(<<<${LOPT} grep -Eo ':+$')" in
+        case "$(<<<"${LOPT}" grep -Eo ':+$')" in
             ::)
                 # optional arg
-                get_opt_value "${WORD1#$OPT}" "$WORD2"
+                get_opt_value "${WORD1#"$OPT"}" "$WORD2"
                 OPTS+=("${OPT}")
                 OPTS+=("${VAL}")
                 ;;
             :)
                 # required arg
-                get_opt_value "${WORD1#*$OPT}" "$WORD2"
+                get_opt_value "${WORD1#*"$OPT"}" "$WORD2"
                 [ -n "${VAL:-}" ] || { echo >&2 "${NAME+$NAME: }${OPT}: value required"; exit 1; }
                 OPTS+=("${OPT}")
                 OPTS+=("${VAL}")
@@ -121,7 +153,10 @@ parse_long_opt () {
         esac
         break
     done
-    $FOUND || { echo >&2 "${NAME+$NAME: }${OPT}: unknown option"; exit 1; }
+    $FOUND || {
+        echo >&2 "${NAME+$NAME: }${OPT}: unknown option"
+        exit 1
+    }
 }
 
 
@@ -131,7 +166,6 @@ parse_short_opt () {
     local OFFSET=1
     local PREFIX="-"
     local FOUND=false
-    local CHAR_INDEX
 
     for ((i=OFFSET; i<${#WORD1}; ++i)); do
         OPT=${WORD1:i:1}
@@ -146,7 +180,7 @@ parse_short_opt () {
             [ "$OPT" == "${SOPTS:j:1}" ] || continue
             FOUND=true
             case "${SOPTS:j+1:2}" in
-                =|[:space:])
+                =|[[:space:]])
                     FOUND=true
                     break
                     ;;
@@ -170,7 +204,10 @@ parse_short_opt () {
             esac
             break
         done
-        $FOUND || { echo >&2 "${NAME+$NAME: }${PREFIX}${OPT}: unknown option"; exit 1; }
+        $FOUND || {
+            echo >&2 "${NAME+$NAME: }${PREFIX}${OPT}: unknown option"
+            exit 1
+        }
     done
 }
 
@@ -198,10 +235,11 @@ parse_opt () {
 parse_opts_args () {
     local NEXT N ARG_INDEX
     for ((ARG_INDEX=1; ARG_INDEX<=$#; ++ARG_INDEX)); do
-        ARG=${!ARG_INDEX}
+        ARG="${!ARG_INDEX}"
+
         case $ARG in
             --)
-                ARGS="${ARGS:+$ARGS }${@:$ARG_INDEX+1}"
+                ARGS=( "${ARGS:+"${ARGS[@]}" }" "${@:$ARG_INDEX+1}" )
                 break
                 ;;
             -*)
@@ -251,13 +289,13 @@ main () {
         esac
     done
 
-    [ -n "$SOPTS" -o -n "${_LOPTS:-}" ] || {
+    [ -n "${SOPTS:-}" ] || [ -n "${_LOPTS:-}" ] || {
         echo >&2 "error: no short or long options declared"
         usage
         exit 1
     }
 
-    IFS=',' read -ra LOPTS <<< "$_LOPTS:-}"
+    IFS=',' read -ra LOPTS <<< "${_LOPTS:-}"
 
     parse_opts_args "$@"
     ${SOURCED} || printf '%s\n' ${OPTS:+"${OPTS[@]}"} -- ${ARGS:+"${ARGS[@]}"}
