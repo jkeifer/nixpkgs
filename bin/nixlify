@@ -1,10 +1,22 @@
-#!/bin/bash -eu
+#!/usr/bin/env bash
 # Inspired by https://github.com/kclejeune/system/blob/master/bin/do.py
 
-# this should use realpath, but the MacOS BSD version
-# is a joke and doesn't work for these purposes
-SCRIPT_DIR="$(python3 -c "import os; import sys; print(os.path.realpath('${BASH_SOURCE[0]%/*}'))")"
-GETOPT="$SCRIPT_DIR/getopt"
+set -x
+set -euo pipefail
+
+find_this () {
+    THIS="${1:?'must provide script path, like "${BASH_SOURCE[0]}" or "$0"'}"
+    trap "echo >&2 'FATAL: could not resolve parent directory of ${THIS}'" EXIT
+    [ "${THIS:0:1}"  == "/" ] || THIS="$(pwd -P)/${THIS}"
+    THIS_DIR="$(dirname -- "${THIS}")"
+    THIS_DIR="$(cd -P -- "${THIS_DIR}" && pwd)"
+    THIS="${THIS_DIR}/$(basename -- "${THIS}")"
+    trap "" EXIT
+}
+
+find_this "${BASH_SOURCE[0]}"
+
+GETOPT="${THIS_DIR}/getopt"
 
 # Configuration Targets
 NIXOS=nixosConfigurations
@@ -190,7 +202,7 @@ EOF
     # if unspecified, figure out the build/config target type
     [ -n "$TARGET" ] || TARGET="$(get_conf_target)"
 
-    cd "$SCRIPT_DIR/.."
+    cd "$THIS_DIR/.."
     nix build ".#${TARGET}.${HOSTNAME}.config.system.build.toplevel" -v --experimental-features "nix-command flakes" ${ARGS:+"${ARGS[@]}"}
 
     if $SWITCH; then
@@ -220,7 +232,7 @@ _build () {
     local USAGE=$(cat <<EOF
 USAGE: $0 ${ACTION} [ OPTIONS ]
 
-Command to $ACTION the user/system configuration.
+Command to ${ACTION} the user/system configuration.
 Discovers unspecified build parameters from the system.
 
 OPTIONS:
@@ -234,15 +246,15 @@ OPTIONS:
 EOF
     )
 
-    . $GETOPT -n "$0: ${ACTION}" -o "h" -l "help,home-manager,darwin,nixos,host:" -- "$@"
+    . "${GETOPT}" -n "$0: ${ACTION}" -o "h" -l "help,home-manager,darwin,nixos,host:" -- "$@"
 
     local TARGET ARG i=0
-    while [ "$i" -lt "${#OPTS[@]}" ]; do
+    while [ "${i}" -lt "${#OPTS[@]}" ]; do
         ARG="${OPTS[$i]}"
         i=$((i+1))
-        case $ARG in
+        case "${ARG}" in
             -h|--help)
-                echou "$USAGE"
+                echou "${USAGE}"
                 ;;
             --host)
                 HOSTNAME="${OPTS[$i]}"
@@ -271,33 +283,33 @@ EOF
 
     # handle unknown arguments (allowing 'help')
     i=0
-    while [ "$i" -lt "${#ARGS[@]}" ]; do
+    while [ "${i}" -lt "${#ARGS[@]}" ]; do
         ARG="${ARGS[$i]}"
         i=$((i+1))
-        [ "$ARG" == "help" ] && echou "$USAGE"
+        [ "${ARG}" == "help" ] && echou "${USAGE}"
     done
 
-    [ -n "$TARGET" ] || TARGET="$(get_conf_target)"
+    [ -n "${TARGET:-}" ] || TARGET="$(get_conf_target)"
 
     local CMD
-    case "$TARGET" in
-        $NIXOS)
-            CMD="sudo nixos-rebuild"
+    case "${TARGET}" in
+        ${NIXOS})
+            CMD="nixos-rebuild --use-remote-sudo"
             ;;
-        $DARWIN)
+        ${DARWIN})
             CMD="darwin-rebuild"
             ;;
-        $HOME_MANAGER)
+        ${HOME_MANAGER})
             CMD="home-manager"
             ;;
         *)
-            ercho "${ACTION}: unknown target type: '$TARGET'" 1
+            ercho "${ACTION}: unknown target type: '${TARGET}'" 1
             ;;
     esac
 
 
-    cd "$SCRIPT_DIR/.."
-    $CMD $ACTION --flake ".#${HOSTNAME}" ${ARGS:+"${ARGS[@]}"}
+    cd "${THIS_DIR}/.."
+    ${CMD} ${ACTION} --flake ".#${HOSTNAME}" ${ARGS:+"${ARGS[@]}"}
     [ "${ACTION}" == "switch" ] || \
         ercho "${ACTION}: NOTICE: result built but not activated. Run the 'switch' command to apply it."
 }
@@ -360,7 +372,7 @@ EOF
         done
     }
 
-    cd "$SCRIPT_DIR/.."
+    cd "$THIS_DIR/.."
     nix flake ${ACTION}${COMMIT:+ --commit-lock-file}${UPDATES}
 }
 
@@ -428,7 +440,7 @@ EOF
         esac
     }
 
-    cd "$SCRIPT_DIR/.." && pwd
+    cd "$THIS_DIR/.." && pwd
 }
 
 
