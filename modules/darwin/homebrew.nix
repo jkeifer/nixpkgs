@@ -18,14 +18,7 @@ in {
       brewfile = true;
     };
 
-    taps = [
-      "homebrew/cask"
-      "homebrew/cask-drivers"
-      "homebrew/cask-fonts"
-      "homebrew/cask-versions"
-      "homebrew/core"
-      "homebrew/services"
-    ];
+    taps = [];
 
     masApps = {
       Amphetamine = 937984704;
