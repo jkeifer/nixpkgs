@@ -19,44 +19,40 @@ repo-name() {
     [ -z "$name" ] || echo "$name"
 }
 
+set-aws-secrets() {
+    local profile_name="${1:?"must provide profile name"}"
+    local creds
+    creds=$(aws configure export-credentials --profile "${profile_name}")
+    rc=$?
 
-set-secrets() {
-    local profile_name="${1:?must provide profile name}"
-    local sso_url="$(aws configure get sso_start_url --profile "${profile_name}")"
-    local now="$(date -u "+%Y%m%d%H%M%S")"
-    local region="$(aws configure get region --profile "${profile_name}")"
-    region="${region:-us-west-2}"
+    if [ "${rc}" -eq 255 ]; then
+        # using sso and not logged in
+        local sso_session="$(aws configure get sso_session --profile "${profile_name}")"
 
-    if [ -n "$sso_url" ]; then
-        local role_name="$(aws configure get sso_role_name --profile "${profile_name}")"
-        local account_id="$(aws configure get sso_account_id --profile "${profile_name}")"
-
-        local sso_info="$(grep -h "${sso_url}" ~/.aws/sso/cache/*)"
-        local expiration="$(<<<$sso_info jq -cr '.expiresAt' | tr -d ':TZ\-')"
-
-        [ "${expiration}" -gt "${now}" ] || {
+        if [ -n "${sso_session}" ]; then
+            aws sso login --sso-session "${sso_session}"
+        else
             aws sso login --profile "${profile_name}"
-            local sso_info="$(grep -h "https://cubesatdata.awsapps.com/start#/" ~/.aws/sso/cache/*)"
-        }
+        fi
 
-        local token="$(<<<$sso_info jq -cr .accessToken)"
-
-        local creds="$(aws sso get-role-credentials --profile "${profile_name}" \
-            --access-token "${token}" \
-            --role-name "${role_name}" \
-            --account-id "${account_id}")"
-        export AWS_ACCESS_KEY_ID="$(<<<$creds jq -cr '.roleCredentials.accessKeyId')"
-        export AWS_SECRET_ACCESS_KEY="$(<<<$creds jq -rc '.roleCredentials.secretAccessKey')"
-        export AWS_SESSION_TOKEN="$(<<<$creds jq -rc '.roleCredentials.sessionToken')"
-    else
-        local identity="$(aws sts get-caller-identity --profile "${profile_name}")"
-        local user_id="$(<<<$identity jq -cr '.UserId')"
-        local creds="$(grep -h "${user_id}" ~/.aws/cli/cache/*)"
-        export AWS_ACCESS_KEY_ID="$(<<<$creds jq -cr '.Credentials.AccessKeyId')"
-        export AWS_SECRET_ACCESS_KEY="$(<<<$creds jq -rc '.Credentials.SecretAccessKey')"
-        export AWS_SESSION_TOKEN="$(<<<$creds jq -rc '.Credentials.SessionToken')"
+        creds=$(aws configure export-credentials --profile "${profile_name}")
     fi
 
-    export AWS_DEFAULT_REGION=${region}
-    export AWS_REGION=${region}
+    export AWS_ACCESS_KEY_ID="$(echo "${creds}" | jq -cr '.AccessKeyId')"
+    export AWS_SECRET_ACCESS_KEY="$(echo "${creds}" | jq -rc '.SecretAccessKey')"
+    export AWS_SESSION_TOKEN="$(echo "${creds}" | jq -rc '.SessionToken')"
+
+    local region="$(aws configure get region --profile "${profile_name}")"
+    # make sure to set this default region as makes sense to you
+    region="${region:-"us-west-2"}"
+    export AWS_DEFAULT_REGION="${region}"
+    export AWS_REGION="${region}"
+}
+
+unset-aws-secrets() {
+    unset AWS_ACCESS_KEY_ID
+    unset AWS_SECRET_ACCESS_KEY
+    unset AWS_SESSION_TOKEN
+    unset AWS_DEFAULT_REGION
+    unset AWS_REGION
 }
