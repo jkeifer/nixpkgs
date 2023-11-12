@@ -1,7 +1,6 @@
 { ... }: {
   system.defaults.NSGlobalDomain = {
     AppleInterfaceStyle = "Dark";
-    AppleMenuBarVisibleInFullscreen = true;
     AppleShowAllExtensions = true;
     AppleShowScrollBars = "Always";
     AppleTemperatureUnit = "Fahrenheit";
