@@ -46,6 +46,13 @@
           user.email = "jkeifer@pdx.edu";
         };
       }
+      {
+        condition = "gitdir:~/ucsf/";
+        contents = {
+          user.name = "Jarrett Keifer";
+          user.email = "jarrett.keifer@ucsf.edu";
+        };
+      }
     ];
 
     # Enhanced diffs
