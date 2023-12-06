@@ -155,6 +155,26 @@
               "Wi-Fi"
               "USB 10/100/1000 LAN"
             ];
+            homebrew.casks = [
+              "google-chrome"
+              "slack"
+              "zoom"
+            ];
+          }];
+        };
+
+        ARS-2VQY2VY-LT = mkDarwinConfig {
+          username = "jkeifer";
+          hostname = "ARS-2VQY2VY-LT";
+          system   = "aarch64-darwin";
+          extraModules = [{
+            networking.knownNetworkServices = [
+              "Wi-Fi"
+              "USB 10/100/1000 LAN"
+            ];
+            homebrew.casks = [
+              "slack"
+            ];
           }];
         };
 
@@ -170,6 +190,10 @@
             homebrew.masApps = {
               msRDP = 1295203466;
             };
+            homebrew.casks = [
+              "google-chrome"
+              "zoom"
+            ];
           }];
         };
 

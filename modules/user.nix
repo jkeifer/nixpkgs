@@ -21,9 +21,9 @@ in {
 
   config = mkIf cfg.enable {
     users.users.${cfg.name} = {
-      group = cfg.name;
-      isNormalUser = true;
-      extraGroups = [ "wheel" ];
+      #group = cfg.name;
+      #isNormalUser = true;
+      #extraGroups = [ "wheel" ];
       description = cfg.description;
       home = "${ if pkgs.stdenvNoCC.isDarwin then "/Users" else "/home" }/${cfg.name}";
       shell = pkgs.${cfg.shell};

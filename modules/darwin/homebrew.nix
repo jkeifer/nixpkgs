@@ -23,25 +23,25 @@ in {
     masApps = {
       Amphetamine = 937984704;
       Calendar366II = 1265895169;
-      Keynote = 409183694;
-      Numbers = 409203825;
-      Pages = 409201541;
+      #Keynote = 409183694;
+      #Numbers = 409203825;
+      #Pages = 409201541;
       #Xcode = 497799835;
     };
 
     casks = [
       "1password"
       "1password-cli"
-      "firefox"
-      "google-chrome"
+      #"firefox"
+      #"google-chrome"
       # this one is a mess but it can be helpful:
       # https://github.com/whomwah/qlstephen
       "qlstephen"
       "raycast"
       "secretive"
-      "slack"
-      "wireshark"
-      "zoom"
+      #"slack"
+      #"wireshark"
+      #"zoom"
     ];
 
     brews = [
