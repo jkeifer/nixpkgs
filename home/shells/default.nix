@@ -1,6 +1,18 @@
 { pkgs, zi, ... }:
 let
-  functions = builtins.readFile ./functions.sh;
+  functions = builtins.concatStringsSep
+    "\n"
+    (
+      builtins.map
+        (f: builtins.readFile (./functions + ("/" + f)))
+        (
+          builtins.attrNames (
+            pkgs.lib.attrsets.filterAttrs
+              (k: v: v == "regular" || v == "symlink")
+              (builtins.readDir ./functions)
+          )
+        )
+    );
   aliases = {
     ls = "ls -GpA";
     cat = "bat";
