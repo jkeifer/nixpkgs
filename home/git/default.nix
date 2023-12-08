@@ -11,6 +11,7 @@
 
     extraConfig = {
       diff.colorMoved = "default";
+      init.defaultBranch = "main";
       pull.rebase = true;
       push.default = "simple";
     };
