@@ -59,7 +59,7 @@
       coreutils-full
       curl
       docker
-      exa
+      eza
       fd
       findutils
       gawk
