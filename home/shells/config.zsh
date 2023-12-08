@@ -89,6 +89,13 @@ zi light-mode wait"1" lucid as"completion" for \
 # tab completion matching is "fuzzy"
 zstyle ':completion:*' matcher-list 'm:{a-z-_}={A-Z_-}' 'r:|=*' 'l:|=* r:|=*'
 
+# kitty integration
+if test -n "$KITTY_INSTALLATION_DIR"; then
+    export KITTY_SHELL_INTEGRATION="no-cursor"
+    autoload -Uz -- "$KITTY_INSTALLATION_DIR"/shell-integration/zsh/kitty-integration
+    kitty-integration
+    unfunction kitty-integration
+fi
 
 # In case we want to test config changes
 [ -f ~/.zsh.test ] && . ~/.zsh.test

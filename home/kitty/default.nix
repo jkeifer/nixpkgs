@@ -33,6 +33,9 @@ in
 
       cursor_blink_interval = 0;
 
+      # shell integration
+      shell_integration = "disabled";
+
       # Tab bar
       tab_bar_edge = "top";
       tab_bar_style = "powerline";
