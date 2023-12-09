@@ -49,9 +49,6 @@
       # fonts
       (pkgs.nerdfonts.override { fonts = [ "FiraCode" ]; })
 
-      # python system utils
-      python3Packages.pyflakes
-
       # utils
       awscli2
       arping
