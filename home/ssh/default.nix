@@ -7,7 +7,7 @@ in {
       enable = true;
 
       controlMaster  = "auto";
-      controlPath    = "${tmpdir}/ssh-%u-%r@%h:%p";
+      controlPath    = "${tmpdir}/%C";
       controlPersist = "600";
 
       hashKnownHosts = true;
@@ -18,6 +18,13 @@ in {
         github = {
           host = "*github.com";
           identityFile = "~/.ssh/id_github";
+          identitiesOnly = true;
+        };
+
+        internal = {
+          host = "*.bnd *.bvn";
+          hostname = "%h.whyiseverythingalreadytaken.com";
+          identityFile = "~/.ssh/id_wieat";
           identitiesOnly = true;
         };
 

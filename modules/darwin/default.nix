@@ -14,13 +14,7 @@
   # For more on the directives provided by nix-darwin:
   # https://daiderd.com/nix-darwin/manual/index.html
 
-  networking.dns = [
-    "1.1.1.2"
-    "1.0.0.2"
-  ];
-
   environment = {
-
     # `home-manager` currently has issues adding them to `~/Applications`
     # Issue: https://github.com/nix-community/home-manager/issues/1341
     systemPackages = with pkgs; [
