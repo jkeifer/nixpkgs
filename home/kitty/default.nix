@@ -52,6 +52,10 @@ in
       map cmd+c        copy_to_clipboard
       map cmd+v        paste_from_clipboard
 
+      ## Mouse mappings
+      # disable middle click paste
+      mouse_map middle release grabbed,ungrabbed discard_event
+
       # Window management
       map cmd+d         launch --cwd=current --type=window
       map cmd+enter     launch --cwd=current --type=window
