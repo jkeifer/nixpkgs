@@ -4,6 +4,7 @@ let
 in {
   programs.vim = {
     enable = true;
+    defaultEditor = true;
     extraConfig = ''
       ${extra}
     '';

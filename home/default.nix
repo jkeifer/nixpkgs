@@ -2,7 +2,6 @@
   imports = [
     ./emacs
     ./git
-    ./iterm2
     ./kitty
     ./shells
     ./ssh
@@ -40,10 +39,6 @@
 
   home = {
 
-    sessionVariables = {
-      EDITOR = "vim";
-    };
-
     packages = with pkgs; [
       # fonts
       (pkgs.nerdfonts.override { fonts = [ "FiraCode" ]; })
@@ -51,7 +46,6 @@
       # utils
       awscli2
       arping
-      colima
       coreutils-full
       curl
       docker
@@ -71,8 +65,7 @@
       kitty
       kubectl
       mtr
-      # disabled due to a libressl build test issue
-      #netcat
+      netcat
       nmap
       nodejs
       qemu
@@ -92,6 +85,7 @@
       #lorri # improve `nix-shell` experience in combination with `direnv`
 
     ] ++ lib.optionals stdenv.isDarwin [
+      colima
       m-cli # useful macOS CLI commands
     ];
 

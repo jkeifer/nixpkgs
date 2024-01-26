@@ -31,7 +31,6 @@
       git
       python3
       wget
-      vim
       zsh
     ];
 
