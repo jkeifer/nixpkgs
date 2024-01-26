@@ -14,7 +14,6 @@
 
     home-manager = {
       enable = true;
-      path = "${config.home.homeDirectory}/.nixpkgs/home";
     };
 
     # https://rycee.gitlab.io/home-manager/options.html#opt-programs.bat.enable
