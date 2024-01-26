@@ -1,7 +1,18 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 let
   extra = builtins.readFile ./extra.vim;
+  vim-spell-en-utf8-dictionary = builtins.fetchurl {
+    url = "http://ftp.vim.org/vim/runtime/spell/en.utf-8.spl";
+    sha256 = "fecabdc949b6a39d32c0899fa2545eab25e63f2ed0a33c4ad1511426384d3070";
+  };
+
+  vim-spell-en-utf8-suggestions = builtins.fetchurl {
+    url = "http://ftp.vim.org/vim/runtime/spell/en.utf-8.sug";
+    sha256 = "5b6e5e6165582d2fd7a1bfa41fbce8242c72476222c55d17c2aa2ba933c932ec";
+  };
 in {
+  home.file."${config.xdg.configHome}/vim/spell/en.utf-8.spl".source =  vim-spell-en-utf8-dictionary;
+  home.file."${config.xdg.configHome}/vim/spell/en.utf-8.sug".source =  vim-spell-en-utf8-suggestions;
   programs.vim = {
     enable = true;
     defaultEditor = true;
