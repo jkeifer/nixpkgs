@@ -18,6 +18,8 @@ in {
     defaultEditor = true;
     extraConfig = ''
       ${extra}
+
+      let g:coc_node_path = "${pkgs.nodejs}/bin/node"
     '';
     # if needing plugins in the future
     # find supported list: nix-env -f '<nixpkgs>' -qaP -A vimPlugins
