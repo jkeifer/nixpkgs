@@ -68,6 +68,10 @@ in {
       SmartQuotes = false;
     };
 
+    "com.apple.WindowManager" = {
+      EnableStandardClickToShowDesktop = false;
+    };
+
     # still need to manually disable spotlight keyboard shortcut 😕
     "com.raycast.macos" = {
       raycastGlobalHotkey = "Command-49";
