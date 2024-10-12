@@ -77,23 +77,22 @@ in {
       raycastGlobalHotkey = "Command-49";
     };
 
-    # maybe needs https://github.com/LnL7/nix-darwin/pull/825 but even that doesn't work
-    #"com.if.Amphetamine" = {
-    #  "Hide Dock Icon" = 1;
-    #  "Icon Style" = 2;
-    #  "Trigger Data" = [
-    #    {
-    #      Enabled = 1;
-    #      Name = "Wifi";
-    #      SSID = "Othrostichies";
-    #      "Screen Saver Delay" = 5;
-    #      "Screen Saver Exceptions" = [];
-    #      TypeIDs = [
-    #        2
-    #      ];
-    #    }
-    #  ];
-    #};
+    "com.if.Amphetamine" = {
+      "Hide Dock Icon" = 1;
+      "Icon Style" = 2;
+      "Trigger Data" = [
+        {
+          Enabled = 1;
+          Name = "Wifi";
+          SSID = "Othrostichies";
+          "Screen Saver Delay" = 5;
+          "Screen Saver Exceptions" = [];
+          TypeIDs = [
+            2
+          ];
+        }
+      ];
+    };
   };
 
   system.activationScripts.postUserActivation.text = ''
