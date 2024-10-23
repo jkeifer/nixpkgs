@@ -8,10 +8,10 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
 
-    nixpkgs-stable.url = "github:nixos/nixpkgs/nixpkgs-23.05-darwin";
+    nixpkgs-stable.url = "github:nixos/nixpkgs/nixpkgs-24.05-darwin";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     nixpkgs-master.url = "github:nixos/nixpkgs/master";
-    nixos-stable.url = "github:nixos/nixpkgs/nixos-23.05";
+    nixos-stable.url = "github:nixos/nixpkgs/nixos-24.05";
     nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
     spacemacs = {
@@ -38,6 +38,8 @@
       url = "github:z-shell/zi/main";
       flake = false;
     };
+
+    nixneovim.url = "github:nixneovim/nixneovim";
   };
 
   outputs = inputs@{ self, darwin, home-manager, flake-utils, spacemacs, zi, ... }:
@@ -157,6 +159,7 @@
             ];
             homebrew.casks = [
               "google-chrome"
+              "qgis"
               "slack"
               "zoom"
             ];
@@ -242,6 +245,7 @@
         ;
 
         # flake input packages
+        #nvim-plugins = import inputs.nixneovim.overlays.default;
         # none
 
       } // optionalAttrs (prev.stdenv.system == "aarch64-darwin") {

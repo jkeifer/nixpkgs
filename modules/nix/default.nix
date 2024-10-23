@@ -1,11 +1,10 @@
 { inputs, config, lib, pkgs, ... }: {
   nix = {
-    package = pkgs.nixFlakes;
+    package = pkgs.nixVersions.latest;
     extraOptions = ''
       keep-outputs = true
       keep-derivations = true
-      ${lib.optionalString (config.nix.package == pkgs.nixFlakes)
-      "experimental-features = nix-command flakes"}
+      experimental-features = nix-command flakes
     '' + lib.optionalString (pkgs.system == "aarch64-darwin") ''
       extra-platforms = x86_64-darwin aarch64-darwin
     '';

@@ -13,7 +13,7 @@
   nix.configureBuildUsers = true;
 
   # Enable experimental version of nix with flakes support
-  nix.package = pkgs.nixUnstable;
+  nix.package = pkgs.nixVersions.latest;
   nix.extraOptions = "experimental-features = nix-command flakes";
 
   # Auto upgrade nix package and the daemon service.

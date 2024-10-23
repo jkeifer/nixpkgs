@@ -13,6 +13,11 @@ in
       "--directory=${config.home.homeDirectory}"
     ];
 
+    shellIntegration = {
+      mode = "no-cursor";
+      enableZshIntegration = true;
+    };
+
     settings = {
       scrollback_lines = 50000;
       font_family = "Fira Code";
@@ -33,9 +38,6 @@ in
 
       cursor_blink_interval = 0;
 
-      # shell integration
-      shell_integration = "disabled";
-
       # Tab bar
       tab_bar_edge = "top";
       tab_bar_style = "powerline";
@@ -43,6 +45,9 @@ in
       active_tab_font_style = "bold";
       inactive_tab_font_style = "normal";
       tab_activity_symbol = "";
+
+      # sigh
+      update_check_interval  = 0;
     };
 
     extraConfig = ''
