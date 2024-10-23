@@ -1,5 +1,6 @@
 { config, pkgs, lib, ... }: {
   imports = [
+    ./direnv
     ./emacs
     ./git
     ./kitty
@@ -18,12 +19,6 @@
     # https://rycee.gitlab.io/home-manager/options.html#opt-programs.bat.enable
     bat = {
       enable = true;
-    };
-
-    # https://rycee.gitlab.io/home-manager/options.html#opt-programs.direnv.enable
-    direnv = {
-      enable = true;
-      nix-direnv.enable = true;
     };
 
     # https://rycee.gitlab.io/home-manager/options.html#opt-programs.htop.enable
