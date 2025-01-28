@@ -13,7 +13,7 @@
 
   environment = {
     systemPackages = with pkgs; [
-      bashInteractive_5
+      bashInteractive
       coreutils
       curl
       git

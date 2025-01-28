@@ -36,7 +36,7 @@
 
     packages = with pkgs; [
       # fonts
-      (pkgs.nerdfonts.override { fonts = [ "FiraCode" ]; })
+      nerd-fonts.fira-code
 
       # utils
       awscli2

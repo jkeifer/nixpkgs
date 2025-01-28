@@ -18,7 +18,7 @@
     # `home-manager` currently has issues adding them to `~/Applications`
     # Issue: https://github.com/nix-community/home-manager/issues/1341
     systemPackages = with pkgs; [
-      bashInteractive_5
+      bashInteractive
       coreutils
       curl
       fish
@@ -29,7 +29,6 @@
     ];
 
     shells = [ pkgs.bashInteractive pkgs.zsh pkgs.fish ];
-    loginShell = pkgs.zsh;
     pathsToLink = [ "/share/zsh" ];
   };
 
