@@ -1,5 +1,10 @@
 { ... }: let
 in {
+  # just get this working for now; see
+  # https://github.com/nix-darwin/nix-darwin/issues/1452
+  # tl;dr: this is going to change
+  system.primaryUser = "jkeifer";
+
   system.defaults.NSGlobalDomain = {
     AppleInterfaceStyle = "Dark";
     AppleShowAllExtensions = true;
@@ -15,13 +20,6 @@ in {
     "com.apple.sound.beep.volume" = 0.725;
     "com.apple.trackpad.scaling" = 0.875;
     "com.apple.trackpad.enableSecondaryClick" = true;
-  };
-
-  system.defaults.alf = {
-    globalstate = 1;
-    allowsignedenabled = 1;
-    allowdownloadsignedenabled = 1;
-    stealthenabled = 1;
   };
 
   system.defaults.dock = {
@@ -95,9 +93,9 @@ in {
     };
   };
 
-  system.activationScripts.postUserActivation.text = ''
+  system.activationScripts.activate.text = ''
     # diable startup sound
-    sudo /usr/sbin/nvram StartupMute=%01
+    /usr/sbin/nvram StartupMute=%01
 
     # following line should allow us to avoid a logout/login cycle for most settings
     /System/Library/PrivateFrameworks/SystemAdministration.framework/Resources/activateSettings -u

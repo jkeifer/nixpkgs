@@ -1,4 +1,4 @@
-{ pkgs, zi, ... }:
+{ pkgs, lib, zi, ... }:
 let
   functions = builtins.concatStringsSep
     "\n"
@@ -30,7 +30,7 @@ in {
     "/opt/homebrew/sbin"
   ];
 
-  home.file.".zi/bin" = {
+  xdg.configFile."zi/bin" = {
     source = zi;
     recursive = true;
   };
@@ -78,9 +78,6 @@ in {
       enableCompletion = false;
       dotDir = ".config/zsh";
 
-      # disable completion as we handle it in init
-      completionInit = [ ];
-
       history = {
         expireDuplicatesFirst = true;
         extended = true;
@@ -92,13 +89,16 @@ in {
         ignoreSpace = true;
         share = false;
       };
-      initExtraBeforeCompInit = ''
-        source ~/.zi/bin/zi.zsh
-      '';
-      initExtra = ''
+
+      initContent = ''
+        typeset -Ag ZI
+        typeset -gx ZI[HOME_DIR]="''${HOME}/.config/zi"
+        typeset -gx ZI[BIN_DIR]="''${HOME}/.config/zi/bin"
+        source "''${HOME}/.config/zi/bin/zi.zsh"
         ${functions}
         ${builtins.readFile ./config.zsh}
       '';
+
       shellAliases = aliases;
     };
   };

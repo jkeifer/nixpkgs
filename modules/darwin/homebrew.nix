@@ -1,9 +1,16 @@
-{ config, lib, pkgs, ... }:
+{ config, lib, nix-homebrew, pkgs, ... }:
 
 let
   mkIfCaskPresent = cask: lib.mkIf (lib.any (x: x == cask) config.homebrew.casks);
   brewBinPrefix = if pkgs.system == "aarch64-darwin" then "/opt/homebrew/bin" else "/usr/local/bin";
 in {
+  nix-homebrew = {
+    # see https://github.com/zhaofengli/nix-homebrew
+    enable = true;
+
+    user = "${config.user.name}";
+  };
+
   homebrew = {
     enable = true;
     onActivation = {
@@ -22,7 +29,7 @@ in {
 
     masApps = {
       Amphetamine = 937984704;
-      Calendar366II = 1265895169;
+      #Calendar366II = 1265895169;
       #Keynote = 409183694;
       #Numbers = 409203825;
       #Pages = 409201541;
@@ -32,20 +39,17 @@ in {
     casks = [
       "1password"
       "1password-cli"
-      #"firefox"
-      #"google-chrome"
       # this one is a mess but it can be helpful:
       # https://github.com/whomwah/qlstephen
+      "itsycal"
       "qlstephen"
       "raycast"
       "secretive"
-      #"slack"
-      #"wireshark"
-      #"zoom"
     ];
 
     brews = [
       # for cli commands not in nix
+      # _should not_ need this
     ];
   };
 

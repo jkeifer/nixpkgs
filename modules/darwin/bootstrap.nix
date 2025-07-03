@@ -1,6 +1,8 @@
 { config, pkgs, lib, ... }:
 
 {
+  nix.enable = true;
+
   nix.settings.substituters = [
     "https://cache.nixos.org/"
   ];
@@ -10,14 +12,10 @@
   nix.settings.trusted-users = [
     "@admin"
   ];
-  nix.configureBuildUsers = true;
 
   # Enable experimental version of nix with flakes support
   nix.package = pkgs.nixVersions.latest;
   nix.extraOptions = "experimental-features = nix-command flakes";
-
-  # Auto upgrade nix package and the daemon service.
-  services.nix-daemon.enable = true;
 
   # Add shells installed by nix to /etc/shells file
   environment.shells = with pkgs; [

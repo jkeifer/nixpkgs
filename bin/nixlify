@@ -49,76 +49,11 @@ has_nix () {
 
 
 install () {
-    local URL=https://github.com/numtide/nix-unstable-installer/releases
-    local FORCE=false
-    local DAEMON=true
-    local USAGE=$(cat <<EOF
+    cat <<EOF
 USAGE: $0 ${FUNCNAME[0]} [ OPTIONS ]
 
-Install nix to the local system.
-
-OPTIONS:
-    -h/--help         show this message
-    -v/--version      specify release version, default latest
-    -F/--force        force re-run of installer
-    -s/--single-user  install in single user mode, default false
-
-To find available release versions see '$URL'.
+DEPRECATED: follow install instructions for your favorite nix distribution, e.g., lix
 EOF
-    )
-
-    . $GETOPT -n "$0: ${FUNCNAME[0]}" -o "shv:F" -l "single-user,help,version:,force" -- "$@"
-
-    local ARG i=0
-    while [ "$i" -lt "${#OPTS[@]}" ]; do
-        ARG="${OPTS[$i]}"
-        i=$((i+1))
-        case $ARG in
-            -h|--help)
-                echou "$USAGE"
-                ;;
-            -v|--version)
-                local RELEASE="${OPTS[$i]}"
-                i=$((i+1))
-                ;;
-            -F|--force)
-                FORCE=true
-                ;;
-            -s|--single-user)
-                DAEMON=
-                ;;
-            --)
-                break
-                ;;
-            *)
-                ercho "${FUNCNAME[0]}: unknown option: '$ARG'" 1
-                ;;
-        esac
-    done
-
-    # handle unknown arguments (allowing 'help')
-    i=0
-    while [ "$i" -lt "${#ARGS[@]}" ]; do
-        ARG="${ARGS[$i]}"
-        i=$((i+1))
-        [ "$ARG" == "help" ] || ercho "${FUNCNAME[0]}: unknown argument: '$ARG'" 1
-        echou "$USAGE"
-    done
-
-    $FORCE || ! has_nix \
-        || ercho "${FUNCNAME[0]}: nix is already installed; use '-F/--force' to re-run installer" 1
-
-    if [ -n "${RELEASE:-}" ]; then
-        URL="$URL/download/$RELEASE/install"
-    else
-        URL="$URL/latest/download/install"
-    fi
-
-    #exec bash <(curl -L $URL) ${DAEMON:+--daemon }${FLAG:-}
-    ercho "NOTICE: due to MacOS installation issues, the version of"
-    ercho "the nix installer has been overriden with a pre-release pkg."
-    # https://github.com/NixOS/nix/pull/4289#user-content-try-it-out
-    exec sh <(curl https://abathur-nix-install-tests.cachix.org/serve/yihf8zbs0jwph2rs9qfh80dnilijxdi2/install) --tarball-url-prefix https://abathur-nix-install-tests.cachix.org/serve
 }
 
 
@@ -206,11 +141,9 @@ EOF
     nix build ".#${TARGET}.${HOSTNAME}.config.system.build.toplevel" -v --experimental-features "nix-command flakes" ${ARGS:+"${ARGS[@]}"}
 
     if $SWITCH; then
-        ./result/activate-user
         sudo ./result/activate
     else
         ercho "NOTICE: result built but not activated. Run again with '--switch' or manually run the following:"
-        ercho "    $(pwd)/result/activate-user"
         ercho "    sudo $(pwd)/result/activate"
     fi
 }

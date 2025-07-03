@@ -34,6 +34,7 @@
       url = "github:nix-community/home-manager/master";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
+    nix-homebrew.url = "github:zhaofengli/nix-homebrew";
     zi = {
       url = "github:z-shell/zi/main";
       flake = false;
@@ -42,7 +43,7 @@
     nixneovim.url = "github:nixneovim/nixneovim";
   };
 
-  outputs = inputs@{ self, darwin, home-manager, flake-utils, spacemacs, zi, ... }:
+  outputs = inputs@{ self, darwin, home-manager, flake-utils, nix-homebrew, spacemacs, zi, ... }:
     let
       inherit (darwin.lib) darwinSystem;
       inherit (home-manager.lib) homeManagerConfiguration;
@@ -67,6 +68,7 @@
         nixpkgs ? nixpkgsConfig,
         baseModules ? [
           home-manager.darwinModules.home-manager
+          nix-homebrew.darwinModules.nix-homebrew
           ./modules/darwin
           ./modules/home-manager.nix
         ],
@@ -166,9 +168,9 @@
           }];
         };
 
-        ARS-2VQY2VY-LT = mkDarwinConfig {
+        jkeifer-MacBook-Pro = mkDarwinConfig {
           username = "jkeifer";
-          hostname = "ARS-2VQY2VY-LT";
+          hostname = "jkeifer-MacBook-Pro";
           system   = "aarch64-darwin";
           extraModules = [{
             networking.knownNetworkServices = [
@@ -176,8 +178,12 @@
               "USB 10/100/1000 LAN"
             ];
             homebrew.casks = [
+              "google-chrome"
+              "qgis"
               "slack"
+              "zoom"
             ];
+            ids.gids.nixbld = 350;
           }];
         };
 
