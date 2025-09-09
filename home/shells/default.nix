@@ -1,4 +1,4 @@
-{ pkgs, lib, zi, ... }:
+{ config, pkgs, lib, zi, ... }:
 let
   functions = builtins.concatStringsSep
     "\n"
@@ -76,7 +76,7 @@ in {
     zsh = {
       enable = true;
       enableCompletion = false;
-      dotDir = ".config/zsh";
+      dotDir = "${config.xdg.configHome}/zsh";
 
       history = {
         expireDuplicatesFirst = true;

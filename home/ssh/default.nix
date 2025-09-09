@@ -1,16 +1,11 @@
-{ ... }:
+{ config, ... }:
 let
   tmpdir = "~/tmp/ssh";
 in {
   programs = {
     ssh = {
       enable = true;
-
-      controlMaster  = "auto";
-      controlPath    = "${tmpdir}/%C";
-      controlPersist = "600";
-
-      hashKnownHosts = true;
+      enableDefaultConfig = false;
 
       # interesting config examples:
       # https://github.com/jwiegley/nix-config/blob/master/config/home.nix
@@ -28,8 +23,16 @@ in {
           identitiesOnly = true;
         };
 
-        keychain = {
-          host = "*";
+        "*" = {
+          forwardAgent = false;
+          compression = true;
+          serverAliveInterval = 0;
+          serverAliveCountMax = 3;
+          controlMaster  = "auto";
+          controlPath    = "${tmpdir}/%C";
+          controlPersist = "600";
+          hashKnownHosts = true;
+          userKnownHostsFile = "${config.home.homeDirectory}/.ssh/known_hosts";
           extraOptions = {
             UseKeychain    = "yes";
             AddKeysToAgent = "yes";

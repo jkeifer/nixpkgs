@@ -179,6 +179,7 @@
             ];
             homebrew.casks = [
               "google-chrome"
+              "orion"
               "qgis"
               "slack"
               "zoom"
