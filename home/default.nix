@@ -41,6 +41,7 @@
       # utils
       awscli2
       arping
+      claude-code
       coreutils-full
       curl
       docker
@@ -49,6 +50,7 @@
       findutils
       gawk
       gdb
+      gemini-cli
       ghc
       glab
       gron
