@@ -251,6 +251,13 @@
         inherit (final.pkgs-stable)
         ;
 
+        # packages from master
+        inherit (final.pkgs-master)
+          # TODO: remove this, waiting on a PR to land on unstable
+          #       https://github.com/NixOS/nixpkgs/pull/450333
+          awscli2
+        ;
+
         # flake input packages
         #nvim-plugins = import inputs.nixneovim.overlays.default;
         # none
