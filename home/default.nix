@@ -66,6 +66,7 @@
       nmap
       nodejs
       qemu
+      qrencode
       pandoc
       ripgrep
       rsync
