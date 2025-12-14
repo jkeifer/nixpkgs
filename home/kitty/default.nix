@@ -46,6 +46,9 @@ in
       inactive_tab_font_style = "normal";
       tab_activity_symbol = "";
 
+      allow_remote_control = "yes";
+      listen_on = "unix:/tmp/kitty-{kitty_pid}.sock";
+
       # sigh
       update_check_interval  = 0;
     };
