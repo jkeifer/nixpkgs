@@ -56,188 +56,74 @@
           allowUnfree = true;
           allowBroken = false;
         };
-        overlays = [ self.overlay ];
+        overlays = [ self.overlays.default ];
       };
 
       supportedSystems = [ "aarch64-darwin" "x86_64-darwin" "x86_64-linux" "aarch64-linux" ];
 
-      mkDarwinConfig = {
-        username,
-        hostname,
-        system ? "x86_64-darwin",
-        nixpkgs ? nixpkgsConfig,
-        baseModules ? [
-          home-manager.darwinModules.home-manager
-          nix-homebrew.darwinModules.nix-homebrew
-          ./modules/darwin
-          ./modules/home-manager.nix
-        ],
-        extraModules ? [ ]
-      }:
+      # Shared module configuration for all Darwin systems
+      darwinModules = [
+        home-manager.darwinModules.home-manager
+        nix-homebrew.darwinModules.nix-homebrew
+        ./modules/darwin
+        ./modules/home-manager.nix
+      ];
+
+      # Shared module configuration for all NixOS systems
+      nixosModules = [
+        home-manager.nixosModules.home-manager
+        ./modules/nixos
+      ];
+
+      # Common configuration injected into all systems
+      commonConfig = {
+        nixpkgs = nixpkgsConfig;
+        nix.registry.my.flake = self;
+      };
+
+      # Helper to build Darwin systems with consistent configuration
+      mkDarwin = hostModule:
         darwinSystem {
-          inherit system;
-          modules = baseModules
-            ++ extraModules
-            ++ [{
-              nixpkgs = nixpkgsConfig;
-              nix.registry.my.flake = self;
-              user = {
-                enable = true;
-                name = username;
-              };
-              networking.computerName = hostname;
-              networking.hostName = hostname;
-            }];
+          modules = darwinModules ++ [ hostModule commonConfig ];
           specialArgs = { inherit spacemacs zi; };
         };
 
-      mkHomeConfig = {
-        username,
-        system ? "x86_64-linux",
-        nixpkgs ? nixpkgsConfig,
-        baseModules ? [ ./home ],
-        extraModules ? [ ]
-      }:
-        homeManagerConfiguration rec {
-          inherit system username;
-          homeDirectory = "/home/${username}";
-          configuration = {
-            imports = baseModules ++ extraModules;
-          };
-          specialArgs = { inherit spacemacs zi; };
-        };
-
-      mkNixosConfig = {
-        username,
-        hostname,
-        system ? "x86_64-linux",
-        nixpkgs ? nixpkgsConfig,
-        baseModules ? [
-          home-manager.nixosModules.home-manager
-          ./modules/nixos
-        ],
-        extraModules ? [],
-      }:
+      # Helper to build NixOS systems with consistent configuration
+      mkNixos = hostModule:
         nixosSystem {
-          inherit system;
-          modules = baseModules
-            ++ [ ./modules/hardware/${hostname}.nix ]
-            ++ extraModules
-            ++ [{
-              nixpkgs = nixpkgsConfig;
-              nix.registry.my.flake = self;
-              user = {
-                enable = true;
-                name = username;
-              };
-              networking.hostName = hostname;
-            }];
+          modules = nixosModules ++ [ hostModule commonConfig ];
           specialArgs = { inherit spacemacs zi; };
         };
     in {
       # MacOS configurations
       darwinConfigurations = {
-
-        # real system configs
-        acamapichtli = mkDarwinConfig {
-          username = "jarrettk";
-          hostname = "acamapichtli";
-          extraModules = [{
-            networking.knownNetworkServices = [
-              "Wi-Fi"
-              "USB 10/100/1000 LAN"
-            ];
-          }];
-        };
-
-        toltecal = mkDarwinConfig {
-          username = "jkeifer";
-          hostname = "toltecal";
-          system   = "aarch64-darwin";
-          extraModules = [{
-            networking.knownNetworkServices = [
-              "Wi-Fi"
-              "USB 10/100/1000 LAN"
-            ];
-            homebrew.casks = [
-              "google-chrome"
-              "qgis"
-              "slack"
-              "zoom"
-            ];
-          }];
-        };
-
-        jkeifer-MacBook-Pro = mkDarwinConfig {
-          username = "jkeifer";
-          hostname = "jkeifer-MacBook-Pro";
-          system   = "aarch64-darwin";
-          extraModules = [{
-            networking.knownNetworkServices = [
-              "Wi-Fi"
-              "USB 10/100/1000 LAN"
-            ];
-            homebrew.casks = [
-              "google-chrome"
-              "inkscape"
-              "orion"
-              "qgis"
-              "slack"
-              "zoom"
-            ];
-            ids.gids.nixbld = 350;
-          }];
-        };
-
-        oxomoco = mkDarwinConfig {
-          username = "jkeifer";
-          hostname = "oxomoco";
-          system   = "aarch64-darwin";
-          extraModules = [{
-            networking.knownNetworkServices = [
-              "Wi-Fi"
-              "USB 10/100/1000 LAN"
-            ];
-            homebrew.masApps = {
-              msRDP = 1295203466;
-            };
-            homebrew.casks = [
-              "google-chrome"
-              "zoom"
-            ];
-          }];
-        };
-
-        # config for github CI workflow
-        github-ci-darwin = mkDarwinConfig {
-          username = "runner";
-          extraModules = [
-            ({ lib, ... }: { homebrew.enable = lib.mkForce false; })
-          ];
-        };
-
+        acamapichtli = mkDarwin ./hosts/acamapichtli;
+        toltecal = mkDarwin ./hosts/toltecal;
+        jkeifer-MacBook-Pro = mkDarwin ./hosts/jkeifer-MacBook-Pro;
+        oxomoco = mkDarwin ./hosts/oxomoco;
+        github-ci-darwin = mkDarwin ./hosts/github-ci-darwin;
       };
 
       nixosConfigurations = {
-        "huijatoo" = mkNixosConfig {
-          username = "jkeifer";
-          hostname = "huijatoo";
-          system = "aarch64-linux";
-          extraModules = [{}];
-        };
+        huijatoo = mkNixos ./hosts/huijatoo;
       };
 
       # home-manager configurations
       homeConfigurations = {
-
-        # Build and activate with `nix build .#vm.activationPackage; ./result/activate`
-        vm = mkHomeConfig {
-          username = "jak";
+        # Build and activate with `nix build .#homeConfigurations.vm.activationPackage; ./result/activate`
+        vm = homeManagerConfiguration {
+          pkgs = import inputs.nixpkgs-unstable {
+            system = "x86_64-linux";
+            inherit (nixpkgsConfig) config overlays;
+          };
+          modules = [
+            ./hosts/vm
+          ];
+          extraSpecialArgs = { inherit spacemacs zi; };
         };
-
       };
 
-   overlay = final: prev: ({
+      overlays.default = final: prev: ({
         # Add access to other versions of `nixpkgs`
         pkgs-master = import inputs.nixpkgs-master {
           inherit (prev.stdenv) system;

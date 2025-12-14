@@ -1,6 +1,5 @@
 { inputs, config, lib, pkgs, spacemacs, zi, ... }: {
   imports = [
-
     # user settings
     ../user.nix
 
@@ -25,4 +24,7 @@
 
     shells = [ pkgs.bashInteractive pkgs.zsh ];
   };
+
+  # Enable zsh since it's the default shell for users
+  programs.zsh.enable = true;
 }
