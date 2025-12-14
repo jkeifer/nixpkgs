@@ -179,6 +179,7 @@
             ];
             homebrew.casks = [
               "google-chrome"
+              "inkscape"
               "orion"
               "qgis"
               "slack"
