@@ -94,33 +94,31 @@
           modules = nixosModules ++ [ hostModule commonConfig ];
           specialArgs = { inherit spacemacs zi; };
         };
+
+      # Helper to build home-manager configurations with consistent configuration
+      mkHome = hostModule:
+        homeManagerConfiguration {
+          modules = [ hostModule ];
+          extraSpecialArgs = { inherit spacemacs zi; };
+        };
     in {
       # MacOS configurations
       darwinConfigurations = {
-        acamapichtli = mkDarwin ./hosts/acamapichtli;
-        toltecal = mkDarwin ./hosts/toltecal;
-        jkeifer-MacBook-Pro = mkDarwin ./hosts/jkeifer-MacBook-Pro;
-        oxomoco = mkDarwin ./hosts/oxomoco;
-        github-ci-darwin = mkDarwin ./hosts/github-ci-darwin;
+        acamapichtli = mkDarwin ./hosts/darwin/acamapichtli;
+        toltecal = mkDarwin ./hosts/darwin/toltecal;
+        jkeifer-MacBook-Pro = mkDarwin ./hosts/darwin/jkeifer-MacBook-Pro;
+        oxomoco = mkDarwin ./hosts/darwin/oxomoco;
+        github-ci-darwin = mkDarwin ./hosts/darwin/github-ci-darwin;
       };
 
       nixosConfigurations = {
-        huijatoo = mkNixos ./hosts/huijatoo;
+        huijatoo = mkNixos ./hosts/nixos/huijatoo;
       };
 
       # home-manager configurations
       homeConfigurations = {
         # Build and activate with `nix build .#homeConfigurations.vm.activationPackage; ./result/activate`
-        vm = homeManagerConfiguration {
-          pkgs = import inputs.nixpkgs-unstable {
-            system = "x86_64-linux";
-            inherit (nixpkgsConfig) config overlays;
-          };
-          modules = [
-            ./hosts/vm
-          ];
-          extraSpecialArgs = { inherit spacemacs zi; };
-        };
+        vm = mkHome ./hosts/home-manager/vm;
       };
 
       overlays.default = final: prev: ({

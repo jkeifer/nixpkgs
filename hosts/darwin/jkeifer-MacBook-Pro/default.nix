@@ -1,32 +1,34 @@
 { config, lib, pkgs, ... }:
 
 {
-  # System architecture
+  imports = [
+    ../common.nix
+  ];
+
   nixpkgs.hostPlatform = "aarch64-darwin";
 
-  # User configuration
   user = {
     enable = true;
     name = "jkeifer";
   };
 
-  # Networking configuration
   networking = {
-    computerName = "oxomoco";
-    hostName = "oxomoco";
+    computerName = "jkeifer-MacBook-Pro";
+    hostName = "jkeifer-MacBook-Pro";
     knownNetworkServices = [
       "Wi-Fi"
       "USB 10/100/1000 LAN"
     ];
   };
 
-  # Homebrew configuration specific to this system
-  homebrew.masApps = {
-    msRDP = 1295203466;
-  };
-
   homebrew.casks = [
     "google-chrome"
+    "inkscape"
+    "orion"
+    "qgis"
+    "slack"
     "zoom"
   ];
+
+  ids.gids.nixbld = 350;
 }

@@ -1,16 +1,17 @@
 { config, lib, pkgs, ... }:
 
 {
-  # System architecture
+  imports = [
+    ../common.nix
+  ];
+
   nixpkgs.hostPlatform = "x86_64-darwin";
 
-  # User configuration
   user = {
     enable = true;
     name = "jarrettk";
   };
 
-  # Networking configuration
   networking = {
     computerName = "acamapichtli";
     hostName = "acamapichtli";
