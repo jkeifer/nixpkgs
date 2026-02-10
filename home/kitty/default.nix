@@ -1,28 +1,47 @@
 { config, lib, pkgs, ... }:
-let
-  theme = builtins.readFile ./earthsong.conf;
-in
-{
-  # Kitty terminal
-  # https://sw.kovidgoyal.net/kitty/conf.html
-  # https://rycee.gitlab.io/home-manager/options.html#opt-programs.kitty.enable
-  programs.kitty = {
-    enable = true;
 
-    darwinLaunchOptions = [
-      "--directory=${config.home.homeDirectory}"
-    ];
+with lib;
+let
+  cfg = config.modules.kitty;
+  theme = builtins.readFile ./earthsong.conf;
+in {
+  options.modules.kitty = {
+    enable = mkEnableOption "kitty terminal configuration";
+
+    font = mkOption {
+      type = types.str;
+      default = "Fira Code";
+      description = "Font family for kitty";
+    };
+
+    fontSize = mkOption {
+      type = types.str;
+      default = "14.0";
+      description = "Font size for kitty";
+    };
+  };
+
+  config = mkIf cfg.enable {
+    # Kitty terminal
+    # https://sw.kovidgoyal.net/kitty/conf.html
+    # https://rycee.gitlab.io/home-manager/options.html#opt-programs.kitty.enable
+    programs.kitty = {
+      enable = true;
+
+      darwinLaunchOptions = [
+        "--directory=${config.home.homeDirectory}"
+      ];
 
     shellIntegration = {
       mode = "no-cursor";
       enableZshIntegration = true;
     };
 
-    settings = {
-      scrollback_lines = 50000;
-      font_family = "Fira Code";
-      font_size = "14.0";
-      disable_ligatures = "cursor"; # disable ligatures when cursor is on them
+      settings = {
+        scrollback_lines = 50000;
+        font_family = cfg.font;
+        font_size = cfg.fontSize;
+        disable_ligatures = "cursor"; # disable ligatures when cursor is on them
 
       # Window layout
       # Hiding the decorations looks cool, but prevents dragging windows.
@@ -84,6 +103,7 @@ in
       map cmd+alt+shift+left   move_tab_backward
     '';
 
-    #extras.useSymbolsFromNerdFont = "JetBrainsMono Nerd Font";
+      #extras.useSymbolsFromNerdFont = "JetBrainsMono Nerd Font";
+    };
   };
 }

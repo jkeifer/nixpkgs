@@ -1,62 +1,92 @@
-{ pkgs, lib, ... }: {
+{ config, lib, pkgs, ... }:
+
+with lib;
+let
+  cfg = config.modules.git;
+in {
   imports = [ ./gh.nix ];
 
-  # https://rycee.gitlab.io/home-manager/options.html#opt-programs.git.enable
-  # Aliases config imported in flake.
-  programs.git = {
-    enable = true;
+  options.modules.git = {
+    enable = mkEnableOption "git configuration";
 
-    userEmail = "jkeifer0@gmail.com";
-    userName = "Jarrett Keifer";
-
-    extraConfig = {
-      diff.colorMoved = "default";
-      init.defaultBranch = "main";
-      pull.rebase = true;
-      push.default = "simple";
+    user = {
+      email = mkOption {
+        type = types.str;
+        description = "Default git email address";
+        default = "";
+      };
+      name = mkOption {
+        type = types.str;
+        description = "Default git user name";
+        default = "";
+      };
     };
 
-    ignores = [
-      ".DS_Store"
-      "_build/"
-      "shell.nix"
-      ".direnv/"
-      ".envrc"
-      "*.swp"
-    ];
+    workspaces = mkOption {
+      type = types.attrsOf (types.submodule {
+        options = {
+          email = mkOption {
+            type = types.str;
+            description = "Git email for this workspace";
+          };
+          name = mkOption {
+            type = types.str;
+            description = "Git user name for this workspace";
+          };
+        };
+      });
+      default = {};
+      description = "Git configurations for different workspace directories";
+      example = {
+        work = {
+          email = "user@work.com";
+          name = "Work User";
+        };
+      };
+    };
 
-    includes = [
-      {
-        condition = "gitdir:~/bigleaf/";
-        contents = {
-          user.name = "jarrettk";
-          user.email = "jarrettk@bigleaf.net";
-        };
-      }
-      {
-        condition = "gitdir:~/e84/";
-        contents = {
-          user.name = "jkeifer";
-          user.email = "jkeifer@element84.com";
-        };
-      }
-      {
-        condition = "gitdir:~/csar/";
-        contents = {
-          user.name = "Jarrett Keifer";
-          user.email = "jkeifer@pdx.edu";
-        };
-      }
-      {
-        condition = "gitdir:~/ucsf/";
-        contents = {
-          user.name = "Jarrett Keifer";
-          user.email = "jarrett.keifer@ucsf.edu";
-        };
-      }
-    ];
+    deltaEnable = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Enable delta for enhanced diffs";
+    };
+  };
 
-    # Enhanced diffs
-    delta.enable = true;
+  config = mkIf cfg.enable {
+    # https://rycee.gitlab.io/home-manager/options.html#opt-programs.git.enable
+    programs.git = {
+      enable = true;
+
+      userEmail = cfg.user.email;
+      userName = cfg.user.name;
+
+      extraConfig = {
+        diff.colorMoved = "default";
+        init.defaultBranch = "main";
+        pull.rebase = true;
+        push.default = "simple";
+      };
+
+      ignores = [
+        ".DS_Store"
+        "_build/"
+        "shell.nix"
+        ".direnv/"
+        ".envrc"
+        "*.swp"
+      ];
+
+      # Generate includes from workspaces configuration
+      includes = mapAttrsToList (dir: workspace: {
+        condition = "gitdir:~/${dir}/";
+        contents = {
+          user.name = workspace.name;
+          user.email = workspace.email;
+        };
+      }) cfg.workspaces;
+
+      # Enhanced diffs
+      delta.enable = cfg.deltaEnable;
+    };
   };
 }

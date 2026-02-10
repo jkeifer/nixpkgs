@@ -1,5 +1,8 @@
 { config, pkgs, lib, zi, ... }:
+
+with lib;
 let
+  cfg = config.modules.shells;
   functions = builtins.concatStringsSep
     "\n"
     (
@@ -25,7 +28,12 @@ let
     airport = "/System/Library/PrivateFrameworks/Apple80211.framework/Versions/Current/Resources/airport";
   };
 in {
-  home.sessionPath = [
+  options.modules.shells = {
+    enable = mkEnableOption "shell configurations (bash, zsh, fish, starship, fzf)";
+  };
+
+  config = mkIf cfg.enable {
+    home.sessionPath = [
     "/opt/homebrew/bin"
     "/opt/homebrew/sbin"
   ];
@@ -104,4 +112,5 @@ in {
   };
 
   xdg.configFile."zsh/p10k.zsh".text = builtins.readFile ./p10k.zsh;
+  };
 }

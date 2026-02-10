@@ -1,7 +1,7 @@
 { inputs, config, lib, pkgs, spacemacs, zi, ... }: {
   imports = [
-    # user settings
-    ../user.nix
+    # NixOS-specific nix configuration
+    ./nix.nix
 
     # Other nixos configuration
   ];

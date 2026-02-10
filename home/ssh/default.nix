@@ -1,9 +1,16 @@
-{ config, ... }:
+{ config, lib, pkgs, ... }:
+
+with lib;
 let
+  cfg = config.modules.ssh;
   tmpdir = "~/tmp/ssh";
 in {
-  programs = {
-    ssh = {
+  options.modules.ssh = {
+    enable = mkEnableOption "ssh configuration";
+  };
+
+  config = mkIf cfg.enable {
+    programs.ssh = {
       enable = true;
       enableDefaultConfig = false;
 
@@ -13,6 +20,12 @@ in {
         github = {
           host = "*github.com";
           identityFile = "~/.ssh/id_github";
+          identitiesOnly = true;
+        };
+
+        repo-element84 = {
+          host = "*repo.element84.com";
+          identityFile = "~/.ssh/id_gitlab";
           identitiesOnly = true;
         };
 
