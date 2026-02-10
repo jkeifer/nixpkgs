@@ -1,14 +1,23 @@
 { config, pkgs, lib, ... }: {
-  imports = [
-    ./direnv
-    ./emacs
-    ./git
-    ./kitty
-    ./shells
-    ./ssh
-    ./tmp
-    ./vim
-  ];
+  # User-specific home-manager configuration
+  #
+  # NOTE: Profiles and modules are imported at the HOST level.
+  # This file contains only user-specific data and preferences.
+  #
+  # See hosts/*/default.nix for profile imports:
+  #   - Darwin workstations: workstation.nix + darwin.nix
+  #   - NixOS workstations: workstation.nix
+  #   - CI systems: base.nix
+
+  # User-specific git configuration
+  # Workspace-specific git configs are now managed by workspace profiles
+  # selected at the host level via homeProfile.workspaces
+  modules.git = {
+    user = {
+      email = "jkeifer0@gmail.com";
+      name = "Jarrett Keifer";
+    };
+  };
 
   programs = {
 
@@ -96,13 +105,6 @@
 
     sessionVariables = {
       TERMINFO_DIRS = "${pkgs.kitty.terminfo.outPath}/share/terminfo";
-    };
-  };
-
-  targets.darwin.defaults = {
-    "com.apple.desktopservices" = {
-      DSDontWriteNetworkStores = true;
-      DSDontWriteUSBStores = true;
     };
   };
 }

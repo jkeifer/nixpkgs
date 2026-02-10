@@ -65,6 +65,7 @@
       darwinModules = [
         home-manager.darwinModules.home-manager
         nix-homebrew.darwinModules.nix-homebrew
+        ./modules/common
         ./modules/darwin
         ./modules/home-manager.nix
       ];
@@ -72,7 +73,9 @@
       # Shared module configuration for all NixOS systems
       nixosModules = [
         home-manager.nixosModules.home-manager
+        ./modules/common
         ./modules/nixos
+        ./modules/home-manager.nix
       ];
 
       # Common configuration injected into all systems

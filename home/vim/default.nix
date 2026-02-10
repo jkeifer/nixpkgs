@@ -1,5 +1,8 @@
-{ pkgs, config, ... }:
+{ config, lib, pkgs, ... }:
+
+with lib;
 let
+  cfg = config.modules.vim;
   extra = builtins.readFile ./extra.vim;
   # TODO: figure out a better way to do this
   #       i.e., as flake inputs
@@ -13,29 +16,48 @@ let
     sha256 = "5b6e5e6165582d2fd7a1bfa41fbce8242c72476222c55d17c2aa2ba933c932ec";
   };
 in {
-  home.file."${config.xdg.configHome}/vim/spell/en.utf-8.spl".source =  vim-spell-en-utf8-dictionary;
-  home.file."${config.xdg.configHome}/vim/spell/en.utf-8.sug".source =  vim-spell-en-utf8-suggestions;
-  programs.vim = {
-    enable = true;
-    defaultEditor = true;
-    extraConfig = ''
-      ${extra}
+  options.modules.vim = {
+    enable = mkEnableOption "vim configuration with coc plugins";
 
-      let g:coc_node_path = "${pkgs.nodejs}/bin/node"
-    '';
-    # if needing plugins in the future
-    # find supported list: nix-env -f '<nixpkgs>' -qaP -A vimPlugins
-    # then add them here
-    plugins = with pkgs.vimPlugins; [
-      ale
-      coc-eslint
-      coc-json
-      coc-markdownlint
-      coc-nvim
-      coc-pyright
-      coc-rust-analyzer
-      coc-tsserver
-      coc-yaml
-    ];
+    defaultEditor = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Set vim as default editor";
+    };
+
+    plugins = mkOption {
+      type = types.listOf types.package;
+      default = with pkgs.vimPlugins; [
+        ale
+        coc-eslint
+        coc-json
+        coc-markdownlint
+        coc-nvim
+        coc-pyright
+        coc-rust-analyzer
+        coc-tsserver
+        coc-yaml
+      ];
+      description = "List of vim plugins to install";
+    };
+  };
+
+  config = mkIf cfg.enable {
+    home.file."${config.xdg.configHome}/vim/spell/en.utf-8.spl".source = vim-spell-en-utf8-dictionary;
+    home.file."${config.xdg.configHome}/vim/spell/en.utf-8.sug".source = vim-spell-en-utf8-suggestions;
+
+    programs.vim = {
+      enable = true;
+      defaultEditor = cfg.defaultEditor;
+      extraConfig = ''
+        ${extra}
+
+        let g:coc_node_path = "${pkgs.nodejs}/bin/node"
+      '';
+      # if needing plugins in the future
+      # find supported list: nix-env -f '<nixpkgs>' -qaP -A vimPlugins
+      # then add them here
+      plugins = cfg.plugins;
+    };
   };
 }

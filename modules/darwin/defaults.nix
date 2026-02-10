@@ -70,6 +70,11 @@ in {
       EnableStandardClickToShowDesktop = false;
     };
 
+    "com.apple.desktopservices" = {
+      DSDontWriteNetworkStores = true;
+      DSDontWriteUSBStores = true;
+    };
+
     # still need to manually disable spotlight keyboard shortcut 😕
     "com.raycast.macos" = {
       raycastGlobalHotkey = "Command-49";

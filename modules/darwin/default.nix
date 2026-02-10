@@ -3,8 +3,8 @@
     # Minimal config of Nix related options and shells
     ./bootstrap.nix
 
-    # user settings
-    ../user.nix
+    # Darwin-specific nix configuration
+    ./nix.nix
 
     # Other nix-darwin configuration
     ./homebrew.nix
