@@ -16,7 +16,7 @@ find_this () {
 find_this "${BASH_SOURCE[0]}"
 
 GETOPT="${THIS_DIR}/getopt"
-FLAKE_DIR="${THIS_DIR}/.."
+FLAKE_DIR="${THIS_DIR}/../.."
 CACHE_DIR="${HOME}/.cache/nixdiff"
 
 # Configuration Targets

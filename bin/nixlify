@@ -16,7 +16,7 @@ find_this () {
 
 find_this "${BASH_SOURCE[0]}"
 
-GETOPT="${THIS_DIR}/getopt"
+GETOPT="${THIS_DIR}/lib/getopt"
 
 # Configuration Targets
 NIXOS=nixosConfigurations
@@ -377,6 +377,11 @@ EOF
 }
 
 
+diff () {
+    "${THIS_DIR}/lib/nixdiff" "$@"
+}
+
+
 main () {
     local USAGE=$(cat <<EOF
 USAGE: $0 COMMAND [ COMMAND_OPTS ] [ COMMAND_ARGS ]
@@ -393,6 +398,7 @@ Supported Commands:
     pull       git pull upstream changes
     push       git push local changes upstream
     update     update the flake locks
+    diff       diff system configurations across git refs
     which      print the config directory path
 
 All commmands support 'help' for more information.
@@ -409,6 +415,7 @@ EOF
         pull)           pull "$@" ;;
         push)           push "$@" ;;
         update)         update "$@" ;;
+        diff)           diff "$@" ;;
         which)          which "$@" ;;
         help|-h|--help) echou "$USAGE" ;;
         ?*) ercho "unknown command: '$CMD'" 1 ;;
