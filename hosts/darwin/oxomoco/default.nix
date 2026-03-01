@@ -1,20 +1,18 @@
-{ config, lib, pkgs, ... }:
-
-{
+{ self, config, lib, pkgs, ... }:
+let
+  hostname = "oxomoco";
+in {
   imports = [
-    ../common.nix
+    ../workstation.nix
   ];
 
   nixpkgs.hostPlatform = "aarch64-darwin";
 
-  user = {
-    enable = true;
-    name = "jkeifer";
-  };
+  jkeifer.workspaces = [ "dev" "csar" ];
 
   networking = {
-    computerName = "oxomoco";
-    hostName = "oxomoco";
+    computerName = hostname;
+    hostName = hostname;
     knownNetworkServices = [
       "Wi-Fi"
       "USB 10/100/1000 LAN"

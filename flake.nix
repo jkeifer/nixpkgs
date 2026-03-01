@@ -18,10 +18,6 @@
       url = "github:/syl20bnr/spacemacs/master";
       flake = false;
     };
-    #comma = {
-    #  url = "github:Shopify/comma";
-    #  flake = false;
-    #};
     flake-compat = {
       url = "github:edolstra/flake-compat";
       flake = false;
@@ -65,6 +61,7 @@
       darwinModules = [
         home-manager.darwinModules.home-manager
         nix-homebrew.darwinModules.nix-homebrew
+        ./modules/users.nix
         ./modules/common
         ./modules/darwin
         ./modules/home-manager.nix
@@ -73,6 +70,7 @@
       # Shared module configuration for all NixOS systems
       nixosModules = [
         home-manager.nixosModules.home-manager
+        ./modules/users.nix
         ./modules/common
         ./modules/nixos
         ./modules/home-manager.nix
@@ -88,14 +86,14 @@
       mkDarwin = hostModule:
         darwinSystem {
           modules = darwinModules ++ [ hostModule commonConfig ];
-          specialArgs = { inherit spacemacs zi; };
+          specialArgs = { inherit self spacemacs zi; };
         };
 
       # Helper to build NixOS systems with consistent configuration
       mkNixos = hostModule:
         nixosSystem {
           modules = nixosModules ++ [ hostModule commonConfig ];
-          specialArgs = { inherit spacemacs zi; };
+          specialArgs = { inherit self spacemacs zi; };
         };
 
       # Helper to build home-manager configurations with consistent configuration

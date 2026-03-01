@@ -17,7 +17,7 @@ let
   };
 in {
   options.modules.vim = {
-    enable = mkEnableOption "vim configuration with coc plugins";
+    enable = mkEnableOption "vim configuration";
 
     defaultEditor = mkOption {
       type = types.bool;
@@ -35,7 +35,7 @@ in {
         coc-nvim
         coc-pyright
         coc-rust-analyzer
-        coc-tsserver
+        #coc-tsserver
         coc-yaml
       ];
       description = "List of vim plugins to install";

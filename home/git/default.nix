@@ -4,8 +4,6 @@ with lib;
 let
   cfg = config.modules.git;
 in {
-  imports = [ ./gh.nix ];
-
   options.modules.git = {
     enable = mkEnableOption "git configuration";
 
@@ -53,14 +51,21 @@ in {
   };
 
   config = mkIf cfg.enable {
+    # Enhanced diffs
+    programs.delta = {
+      enable = cfg.deltaEnable;
+      enableGitIntegration = cfg.deltaEnable;
+    };
+
     # https://rycee.gitlab.io/home-manager/options.html#opt-programs.git.enable
     programs.git = {
       enable = true;
 
-      userEmail = cfg.user.email;
-      userName = cfg.user.name;
-
-      extraConfig = {
+      settings = {
+        user = {
+          email = cfg.user.email;
+          name = cfg.user.name;
+        };
         diff.colorMoved = "default";
         init.defaultBranch = "main";
         pull.rebase = true;
@@ -84,9 +89,6 @@ in {
           user.email = workspace.email;
         };
       }) cfg.workspaces;
-
-      # Enhanced diffs
-      delta.enable = cfg.deltaEnable;
     };
   };
 }

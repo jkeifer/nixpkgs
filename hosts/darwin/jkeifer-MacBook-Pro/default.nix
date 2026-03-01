@@ -1,32 +1,34 @@
-{ config, lib, pkgs, ... }:
-
-{
+{ self, config, lib, pkgs, ... }:
+let
+  hostname = "jkeifer-MacBook-Pro";
+in {
   imports = [
-    ../common.nix
+    ../workstation.nix
   ];
 
   nixpkgs.hostPlatform = "aarch64-darwin";
 
-  user = {
-    enable = true;
-    name = "jkeifer";
-  };
+  jkeifer.workspaces = [ "dev" "e84" ];
 
   networking = {
-    computerName = "jkeifer-MacBook-Pro";
-    hostName = "jkeifer-MacBook-Pro";
+    computerName = hostname;
+    hostName = hostname;
     knownNetworkServices = [
       "Wi-Fi"
       "USB 10/100/1000 LAN"
     ];
   };
 
+  home-manager.users.jkeifer = {
+    home.packages = with pkgs; [
+      awscli2
+    ];
+  };
+
   homebrew.casks = [
-    "google-chrome"
     "inkscape"
     "orion"
     "qgis"
-    "slack"
     "zoom"
   ];
 
