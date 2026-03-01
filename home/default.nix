@@ -1,110 +1,79 @@
-{ config, pkgs, lib, ... }: {
-  # User-specific home-manager configuration
-  #
-  # NOTE: Profiles and modules are imported at the HOST level.
-  # This file contains only user-specific data and preferences.
-  #
-  # See hosts/*/default.nix for profile imports:
-  #   - Darwin workstations: workstation.nix + darwin.nix
-  #   - NixOS workstations: workstation.nix
-  #   - CI systems: base.nix
+{ config, lib, pkgs, ... }:
 
-  # User-specific git configuration
-  # Workspace-specific git configs are now managed by workspace profiles
-  # selected at the host level via homeProfile.workspaces
-  modules.git = {
-    user = {
-      email = "jkeifer0@gmail.com";
-      name = "Jarrett Keifer";
-    };
-  };
+# This is a base home-manager configuration that imports all available
+# modules and enables a minimal set by default.
+#
+# To use in a user configuration:
+#   homeManager.imports = [ ./home ];
+#
+# To enable additional modules:
+#   homeManager.config.modules.emacs.enable = true;
+#   homeManager.config.modules.ssh.enable = true;
+#
+# To disable base modules:
+#   homeManager.config.modules.vim.enable = lib.mkForce false;
+#
+# To configure child modules (e.g., shells):
+#   homeManager.config.modules.shells.zsh.enable = true;   # Enable zsh
+#   homeManager.config.modules.shells.bash.enable = false; # Disable bash
+#
+# To override module configuration directly:
+#   homeManager.config.programs.vim.plugins = lib.mkForce [ /* custom list */ ];
 
-  programs = {
+{
+  imports = [
+    ./bat
+    ./direnv
+    ./emacs
+    ./git
+    ./github
+    ./htop
+    ./iterm2
+    ./kitty
+    ./pkgs
+    ./shells/bash.nix
+    ./shells/zsh.nix
+    ./shells/fish.nix
+    ./ssh
+    ./tmp
+    ./vim
+  ];
 
-    home-manager = {
-      enable = true;
-    };
+  programs.home-manager.enable = true;
 
-    # https://rycee.gitlab.io/home-manager/options.html#opt-programs.bat.enable
-    bat = {
-      enable = true;
-    };
+  # See release notes for state version changes:
+  # https://nix-community.github.io/home-manager/release-notes.xhtml
+  home.stateVersion = "26.05";
 
-    # https://rycee.gitlab.io/home-manager/options.html#opt-programs.htop.enable
-    htop = {
-      enable = true;
-      settings.show_program_path = true;
-    };
+  # Base modules enabled by default
+  # Use mkDefault so they can be easily overridden
+  modules = {
+    bat.enable = lib.mkDefault true;
+    direnv.enable = lib.mkDefault true;
+    git.enable = lib.mkDefault true;
+    vim.enable = lib.mkDefault true;
+    shells.bash.enable = lib.mkDefault true;
+    tmp.enable = lib.mkDefault true;
 
-  };
+    # Package groups enabled by default
+    pkgs.core.enable = lib.mkDefault true;
+    pkgs.darwin.enable = lib.mkDefault true;  # won't apply to non-darwin hosts
 
-  # allows installing font packages below
-  fonts.fontconfig.enable = true;
+    # Other modules available but disabled by default
+    emacs.enable = lib.mkDefault false;
+    github.enable = lib.mkDefault false;
+    htop.enable = lib.mkDefault false;
+    iterm2.enable = lib.mkDefault false;
+    kitty.enable = lib.mkDefault false;
+    shells.zsh.enable = lib.mkDefault false;
+    shells.fish.enable = lib.mkDefault false;
+    ssh.enable = lib.mkDefault false;
 
-  home = {
-
-    packages = with pkgs; [
-      # fonts
-      nerd-fonts.fira-code
-
-      # utils
-      awscli2
-      arping
-      claude-code
-      coreutils-full
-      curl
-      docker
-      eza
-      fd
-      findutils
-      gawk
-      gdb
-      gemini-cli
-      ghc
-      glab
-      gron
-      gnugrep
-      gnused
-      gvproxy
-      hugo
-      jq
-      kitty
-      kubectl
-      mtr
-      netcat
-      nmap
-      nodejs
-      qemu
-      qrencode
-      pandoc
-      ripgrep
-      rsync
-      socat
-      stow
-      tree
-      watch
-      wget
-      xz
-      zi
-      zsh
-
-      #comma # run software from without installing it
-      #lorri # improve `nix-shell` experience in combination with `direnv`
-
-    ] ++ lib.optionals stdenv.isDarwin [
-      colima
-      m-cli # useful macOS CLI commands
-    ];
-
-    # This value determines the Home Manager release that your configuration is compatible with. This
-    # helps avoid breakage when a new Home Manager release introduces backwards incompatible changes.
-    #
-    # You can update Home Manager without changing this value. See the Home Manager release notes for
-    # a list of state version changes in each release.
-    stateVersion = "21.05";
-
-    sessionVariables = {
-      TERMINFO_DIRS = "${pkgs.kitty.terminfo.outPath}/share/terminfo";
-    };
+    # Package groups disabled by default
+    pkgs.ai.enable = lib.mkDefault false;
+    pkgs.containers.enable = lib.mkDefault false;
+    pkgs.fonts.enable = lib.mkDefault false;
+    pkgs.networking.enable = lib.mkDefault false;
+    pkgs.workstation.enable = lib.mkDefault false;
   };
 }

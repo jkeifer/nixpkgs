@@ -2,13 +2,20 @@
 
 let
   mkIfCaskPresent = cask: lib.mkIf (lib.any (x: x == cask) config.homebrew.casks);
-  brewBinPrefix = if pkgs.system == "aarch64-darwin" then "/opt/homebrew/bin" else "/usr/local/bin";
 in {
-  nix-homebrew = {
+  # Assertion: homebrewUser must be set if homebrew is enabled
+  assertions = [
+    {
+      assertion = !config.homebrew.enable || config.darwin.homebrewUser != null;
+      message = "darwin.homebrewUser must be set when homebrew is enabled";
+    }
+  ];
+
+  nix-homebrew = lib.mkIf (config.darwin.homebrewUser != null) {
     # see https://github.com/zhaofengli/nix-homebrew
     enable = true;
 
-    user = "${config.user.name}";
+    user = config.darwin.homebrewUser;
   };
 
   homebrew = {
@@ -19,8 +26,6 @@ in {
       upgrade = true;
     };
 
-    brewPrefix = brewBinPrefix;
-
     global = {
       brewfile = true;
     };
@@ -28,23 +33,9 @@ in {
     taps = [];
 
     masApps = {
-      Amphetamine = 937984704;
-      #Calendar366II = 1265895169;
-      #Keynote = 409183694;
-      #Numbers = 409203825;
-      #Pages = 409201541;
-      #Xcode = 497799835;
     };
 
     casks = [
-      "1password"
-      "1password-cli"
-      # this one is a mess but it can be helpful:
-      # https://github.com/whomwah/qlstephen
-      "itsycal"
-      "qlstephen"
-      "raycast"
-      "secretive"
     ];
 
     brews = [
@@ -55,5 +46,5 @@ in {
 
   # Configuration related to casks
   environment.variables.SSH_AUTH_SOCK = mkIfCaskPresent "secretive"
-     "${config.users.users.username.home}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh";
+     "${config.users.users.${config.darwin.homebrewUser}.home}/Library/Containers/com.maxgoedjen.Secretive.SecretAgent/Data/socket.ssh";
 }

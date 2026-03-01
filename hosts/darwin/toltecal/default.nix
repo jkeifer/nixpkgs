@@ -1,28 +1,19 @@
-{ config, lib, pkgs, ... }:
-
-{
+{ self, config, lib, pkgs, ... }:
+let
+  hostname = "toltecal";
+in {
   imports = [
     ../common.nix
+    "${self}/users/jkeifer"
   ];
 
   nixpkgs.hostPlatform = "aarch64-darwin";
 
-  user = {
-    enable = true;
-    name = "jkeifer";
-  };
-
-  # Enable workspaces for this host
-  homeProfile.workspaces = {
-    e84 = {};      # Uses default directory "e84"
-    bigleaf = {};  # Uses default directory "bigleaf"
-    csar = {};     # Uses default directory "csar"
-    ucsf = {};     # Uses default directory "ucsf"
-  };
+  jkeifer.workspaces = [ "dev" "e84" ];
 
   networking = {
-    computerName = "toltecal";
-    hostName = "toltecal";
+    computerName = hostname;
+    hostName = hostname;
     knownNetworkServices = [
       "Wi-Fi"
       "USB 10/100/1000 LAN"

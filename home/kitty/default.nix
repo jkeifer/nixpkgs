@@ -6,7 +6,7 @@ let
   theme = builtins.readFile ./earthsong.conf;
 in {
   options.modules.kitty = {
-    enable = mkEnableOption "kitty terminal configuration";
+    enable = mkEnableOption "kitty terminal emulator";
 
     font = mkOption {
       type = types.str;
@@ -22,6 +22,11 @@ in {
   };
 
   config = mkIf cfg.enable {
+    # Set TERMINFO_DIRS for kitty terminfo
+    home.sessionVariables = {
+      TERMINFO_DIRS = "${pkgs.kitty.terminfo.outPath}/share/terminfo";
+    };
+
     # Kitty terminal
     # https://sw.kovidgoyal.net/kitty/conf.html
     # https://rycee.gitlab.io/home-manager/options.html#opt-programs.kitty.enable
@@ -32,10 +37,10 @@ in {
         "--directory=${config.home.homeDirectory}"
       ];
 
-    shellIntegration = {
-      mode = "no-cursor";
-      enableZshIntegration = true;
-    };
+      shellIntegration = {
+        mode = "no-cursor";
+        enableZshIntegration = true;
+      };
 
       settings = {
         scrollback_lines = 50000;
@@ -43,67 +48,65 @@ in {
         font_size = cfg.fontSize;
         disable_ligatures = "cursor"; # disable ligatures when cursor is on them
 
-      # Window layout
-      # Hiding the decorations looks cool, but prevents dragging windows.
-      # If using a window manager religiously, uncomment this.
-      #hide_window_decorations = "titlebar-only";
-      window_padding_width = "10";
+        # Window layout
+        # Hiding the decorations looks cool, but prevents dragging windows.
+        # If using a window manager religiously, uncomment this.
+        #hide_window_decorations = "titlebar-only";
+        window_padding_width = "10";
 
-      strip_trailing_spaces = "smart";
-      enable_audio_bell = "no";
-      macos_titlebar_color = "background";
-      macos_option_as_alt = "yes";
-      confirm_os_window_close = 1;
+        strip_trailing_spaces = "smart";
+        enable_audio_bell = "no";
+        macos_titlebar_color = "background";
+        macos_option_as_alt = "yes";
+        confirm_os_window_close = 1;
 
-      cursor_blink_interval = 0;
+        cursor_blink_interval = 0;
 
-      # Tab bar
-      tab_bar_edge = "top";
-      tab_bar_style = "powerline";
-      tab_title_template = "Tab {index}: {title}";
-      active_tab_font_style = "bold";
-      inactive_tab_font_style = "normal";
-      tab_activity_symbol = "";
+        # Tab bar
+        tab_bar_edge = "top";
+        tab_bar_style = "powerline";
+        tab_title_template = "Tab {index}: {title}";
+        active_tab_font_style = "bold";
+        inactive_tab_font_style = "normal";
+        tab_activity_symbol = "";
 
-      allow_remote_control = "yes";
-      listen_on = "unix:/tmp/kitty-{kitty_pid}.sock";
+        allow_remote_control = "yes";
+        listen_on = "unix:/tmp/kitty-{kitty_pid}.sock";
 
-      # sigh
-      update_check_interval  = 0;
-    };
+        # sigh
+        update_check_interval = 0;
+      };
 
-    extraConfig = ''
-      ${theme}
+      extraConfig = ''
+        ${theme}
 
-      ## Keyboard mappings
-      map cmd+c        copy_to_clipboard
-      map cmd+v        paste_from_clipboard
+        ## Keyboard mappings
+        map cmd+c        copy_to_clipboard
+        map cmd+v        paste_from_clipboard
 
-      ## Mouse mappings
-      # disable middle click paste
-      mouse_map middle release grabbed,ungrabbed discard_event
+        ## Mouse mappings
+        # disable middle click paste
+        mouse_map middle release grabbed,ungrabbed discard_event
 
-      # Window management
-      map cmd+d         launch --cwd=current --type=window
-      map cmd+enter     launch --cwd=current --type=window
-      map cmd+n         new_os_window
-      map cmd+w         close_window
-      map cmd+right     next_window
-      map cmd+left      previous_window
-      map cmd+up        move_window_forward
-      map cmd+down      move_window_backward
-      map cmd+l         next_layout
+        # Window management
+        map cmd+d         launch --cwd=current --type=window
+        map cmd+enter     launch --cwd=current --type=window
+        map cmd+n         new_os_window
+        map cmd+w         close_window
+        map cmd+right     next_window
+        map cmd+left      previous_window
+        map cmd+up        move_window_forward
+        map cmd+down      move_window_backward
+        map cmd+l         next_layout
 
-      # Tab management
-      map cmd+t         launch --cwd=current --type=tab
-      map cmd+alt+q     close_tab
-      map cmd+alt+right next_tab
-      map cmd+alt+left  previous_tab
-      map cmd+alt+shift+right  move_tab_forward
-      map cmd+alt+shift+left   move_tab_backward
-    '';
-
-      #extras.useSymbolsFromNerdFont = "JetBrainsMono Nerd Font";
+        # Tab management
+        map cmd+t         launch --cwd=current --type=tab
+        map cmd+alt+q     close_tab
+        map cmd+alt+right next_tab
+        map cmd+alt+left  previous_tab
+        map cmd+alt+shift+right  move_tab_forward
+        map cmd+alt+shift+left   move_tab_backward
+      '';
     };
   };
 }

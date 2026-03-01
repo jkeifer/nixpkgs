@@ -1,22 +1,14 @@
-{ config, lib, pkgs, ... }:
-
-{
+{ self, config, lib, pkgs, ... }:
+let
+  hostname = "huijatoo";
+in {
   imports = [
     ./hardware.nix
     ../common.nix
+    "${self}/users/jkeifer"
   ];
 
   nixpkgs.hostPlatform = "aarch64-linux";
 
-  user = {
-    enable = true;
-    name = "jkeifer";
-  };
-
-  users.users.jkeifer = {
-    isNormalUser = true;
-    extraGroups = [ "wheel" ];
-  };
-
-  networking.hostName = "huijatoo";
+  networking.hostName = hostname;
 }

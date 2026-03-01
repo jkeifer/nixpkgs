@@ -1,9 +1,9 @@
 { inputs, config, lib, pkgs, ... }:
-
 {
   # Common Nix settings shared across all platforms
   nix = {
-    package = pkgs.nixVersions.latest;
+    enable = true;
+    package = lib.mkDefault pkgs.nixVersions.latest;
 
     extraOptions = ''
       keep-outputs = true
@@ -11,9 +11,16 @@
       experimental-features = nix-command flakes
     '';
 
-    # Use new-style settings options (NixOS 23.05+)
     settings = {
-      trusted-users = [ "${config.user.name}" "root" "@admin" "@wheel" ];
+      # Binary cache configuration
+      substituters = [
+        "https://cache.nixos.org/"
+      ];
+      trusted-public-keys = [
+        "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+      ];
+
+      trusted-users = (lib.attrNames (lib.filterAttrs (name: user: user.trustedForNix or false) config.users.users)) ++ [ "@admin" "@wheel" ];
       cores = 8;
       max-jobs = 8;
     };
@@ -22,8 +29,5 @@
       automatic = true;
       options = "--delete-older-than 30d";
     };
-
-    # nixPath removed - not needed for flake-based workflows
-    # If needed for legacy commands, set in platform-specific modules
   };
 }

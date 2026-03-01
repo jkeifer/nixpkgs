@@ -15,11 +15,11 @@ in
 final: prev: ({
   # Add access to other versions of `nixpkgs`
   pkgs-master = import inputs.nixpkgs-master {
-    inherit (prev.stdenv) system;
+    system = prev.stdenv.hostPlatform.system;
     inherit (nixpkgsConfig) config;
   };
   pkgs-stable = import inputs.nixpkgs-stable {
-    inherit (prev.stdenv) system;
+    system = prev.stdenv.hostPlatform.system;
     inherit (nixpkgsConfig) config;
   };
 
@@ -38,7 +38,7 @@ final: prev: ({
   #nvim-plugins = import inputs.nixneovim.overlays.default;
   # none
 
-} // optionalAttrs (prev.stdenv.system == "aarch64-darwin") {
+} // optionalAttrs (prev.stdenv.hostPlatform.system == "aarch64-darwin") {
   # Add access to x86 packages system is running Apple Silicon
   pkgs-x86 = import inputs.nixpkgs-unstable {
     system = "x86_64-darwin";
