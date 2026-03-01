@@ -1,0 +1,405 @@
+#!/usr/bin/env bash
+# Diff Nix system configurations across git refs
+
+set -euo pipefail
+
+find_this () {
+    THIS="${1:?'must provide script path, like "${BASH_SOURCE[0]}" or "$0"'}"
+    trap "echo >&2 'FATAL: could not resolve parent directory of ${THIS}'" EXIT
+    [ "${THIS:0:1}"  == "/" ] || THIS="$(pwd -P)/${THIS}"
+    THIS_DIR="$(dirname -- "${THIS}")"
+    THIS_DIR="$(cd -P -- "${THIS_DIR}" && pwd)"
+    THIS="${THIS_DIR}/$(basename -- "${THIS}")"
+    trap "" EXIT
+}
+
+find_this "${BASH_SOURCE[0]}"
+
+GETOPT="${THIS_DIR}/getopt"
+FLAKE_DIR="${THIS_DIR}/.."
+CACHE_DIR="${HOME}/.cache/nixdiff"
+
+# Configuration Targets
+NIXOS=nixosConfigurations
+DARWIN=darwinConfigurations
+
+ercho () {
+    local MSG="${1:?message to echo is required}"
+    echo -e >&2 "$0: $MSG"
+    [ -z "${2:-}" ] || exit $2
+}
+
+echou () {
+    echo -e >&2 "$1"
+    exit 0
+}
+
+# Get list of available systems from flake
+get_available_systems() {
+    cd "$FLAKE_DIR"
+    {
+        nix eval .#darwinConfigurations --apply builtins.attrNames --json 2>/dev/null | \
+            jq -r '.[] | "darwin: " + .' 2>/dev/null || true
+        nix eval .#nixosConfigurations --apply builtins.attrNames --json 2>/dev/null | \
+            jq -r '.[] | "nixos: " + .' 2>/dev/null || true
+    } | sort
+}
+
+# Get system type (darwin or nixos) for a given system name
+get_system_type() {
+    local system=$1
+    cd "$FLAKE_DIR"
+
+    # Check darwin configurations
+    if nix eval .#darwinConfigurations --apply builtins.attrNames --json 2>/dev/null | \
+       jq -e --arg sys "$system" 'any(. == $sys)' >/dev/null 2>&1; then
+        echo "darwin"
+        return 0
+    fi
+
+    # Check nixos configurations
+    if nix eval .#nixosConfigurations --apply builtins.attrNames --json 2>/dev/null | \
+       jq -e --arg sys "$system" 'any(. == $sys)' >/dev/null 2>&1; then
+        echo "nixos"
+        return 0
+    fi
+
+    echo "not_found"
+}
+
+# Get username for a given system
+get_system_user() {
+    local system_type=$1
+    local system=$2
+    cd "$FLAKE_DIR"
+
+    # Try to extract username from home-manager configuration
+    local config_attr=".${system_type}Configurations.${system}.config.home-manager.users"
+    local username=$(nix eval "$config_attr" --apply builtins.attrNames --json 2>/dev/null | jq -r '.[0] // empty')
+
+    # Fall back to current user if not found
+    echo "${username:-$USER}"
+}
+
+# Resolve git ref to commit hash
+resolve_ref() {
+    local ref=$1
+
+    if [ "$ref" = "working-tree" ] || [ "$ref" = "." ]; then
+        # For working tree, use dirty marker with timestamp
+        echo "dirty-$(date +%s)"
+    else
+        git -C "$FLAKE_DIR" rev-parse --short "$ref" 2>/dev/null || echo "$ref"
+    fi
+}
+
+# Build system closure and cache the path
+build_system() {
+    local system_type=$1
+    local system=$2
+    local ref=$3
+    local commit_hash=$4
+    local no_cache=$5
+
+    local cache_key="${system}-${commit_hash}-system"
+    local cache_file="${CACHE_DIR}/${cache_key}"
+
+    # Check cache
+    if [ "$no_cache" = "false" ] && [ -f "$cache_file" ]; then
+        local cached_path=$(cat "$cache_file")
+        if [ -e "$cached_path" ]; then
+            echo "$cached_path"
+            return 0
+        fi
+    fi
+
+    # Create worktree for ref if needed
+    local worktree_dir=""
+    local needs_cleanup=false
+    if [ "$ref" != "working-tree" ]; then
+        worktree_dir="${FLAKE_DIR}/.nixdiff-worktrees/wt-$$-${commit_hash}"
+        mkdir -p "${FLAKE_DIR}/.nixdiff-worktrees"
+        git -C "$FLAKE_DIR" worktree add -q --detach "$worktree_dir" "$ref"
+        needs_cleanup=true
+    fi
+
+    # Build system
+    local build_dir="${worktree_dir:-$FLAKE_DIR}"
+    cd "$build_dir"
+    local build_attr=".#${system_type}Configurations.${system}.config.system.build.toplevel"
+    local store_path
+
+    echo >&2 "Building system closure for ${system} at ${ref}..."
+    store_path=$(nix build "$build_attr" --print-out-paths 2>&1 | tail -n1)
+
+    # Clean up worktree
+    if [ "$needs_cleanup" = "true" ]; then
+        git -C "$FLAKE_DIR" worktree remove -f "$worktree_dir"
+    fi
+
+    # Cache the path
+    mkdir -p "$CACHE_DIR"
+    echo "$store_path" > "$cache_file"
+
+    echo "$store_path"
+}
+
+# Build home-manager activation package and cache the path
+build_home_manager() {
+    local system_type=$1
+    local system=$2
+    local username=$3
+    local ref=$4
+    local commit_hash=$5
+    local no_cache=$6
+
+    local cache_key="${system}-${username}-${commit_hash}-home"
+    local cache_file="${CACHE_DIR}/${cache_key}"
+
+    # Check cache
+    if [ "$no_cache" = "false" ] && [ -f "$cache_file" ]; then
+        local cached_path=$(cat "$cache_file")
+        if [ -e "$cached_path" ]; then
+            echo "$cached_path"
+            return 0
+        fi
+    fi
+
+    # Create worktree for ref if needed
+    local worktree_dir=""
+    local needs_cleanup=false
+    if [ "$ref" != "working-tree" ]; then
+        worktree_dir="${FLAKE_DIR}/.nixdiff-worktrees/wt-$$-${commit_hash}"
+        mkdir -p "${FLAKE_DIR}/.nixdiff-worktrees"
+        git -C "$FLAKE_DIR" worktree add -q --detach "$worktree_dir" "$ref"
+        needs_cleanup=true
+    fi
+
+    # Build home-manager
+    local build_dir="${worktree_dir:-$FLAKE_DIR}"
+    cd "$build_dir"
+    local build_attr=".#${system_type}Configurations.${system}.config.home-manager.users.${username}.home.activationPackage"
+    local store_path
+
+    echo >&2 "Building home-manager activation for ${username}@${system} at ${ref}..."
+    store_path=$(nix build "$build_attr" --print-out-paths 2>&1 | tail -n1)
+
+    # Clean up worktree
+    if [ "$needs_cleanup" = "true" ]; then
+        git -C "$FLAKE_DIR" worktree remove -f "$worktree_dir"
+    fi
+
+    # Cache the path
+    mkdir -p "$CACHE_DIR"
+    echo "$store_path" > "$cache_file"
+
+    echo "$store_path"
+}
+
+# Diff system packages
+diff_system_packages() {
+    local old_path=$1
+    local new_path=$2
+
+    if [ "$old_path" = "$new_path" ]; then
+        echo "No changes in system packages"
+        return 0
+    fi
+
+    nix store diff-closures "$old_path" "$new_path"
+}
+
+# Diff home-manager files
+diff_home_manager() {
+    local old_path=$1
+    local new_path=$2
+
+    if [ "$old_path" = "$new_path" ]; then
+        echo "No changes in home-manager configuration"
+        return 0
+    fi
+
+    # Find home-files directory in activation package
+    local old_files="${old_path}/home-files"
+    local new_files="${new_path}/home-files"
+
+    if [ ! -d "$old_files" ] && [ ! -d "$new_files" ]; then
+        echo "No home-files directory found in activation packages"
+        return 0
+    fi
+
+    # Show diff
+    diff -r -u "$old_files" "$new_files" 2>/dev/null || true
+}
+
+# Show flake.lock changes
+diff_flake_lock() {
+    local ref1=$1
+    local ref2=$2
+
+    cd "$FLAKE_DIR"
+
+    # Get flake.lock content for each ref
+    local lock1 lock2
+    if [ "$ref1" = "working-tree" ]; then
+        lock1=$(cat flake.lock)
+    else
+        lock1=$(git show "${ref1}:flake.lock" 2>/dev/null)
+    fi
+
+    if [ "$ref2" = "working-tree" ]; then
+        lock2=$(cat flake.lock)
+    else
+        lock2=$(git show "${ref2}:flake.lock" 2>/dev/null)
+    fi
+
+    if [ "$lock1" = "$lock2" ]; then
+        echo "No changes in flake.lock"
+        return 0
+    fi
+
+    # Show structured diff of inputs
+    diff <(echo "$lock1" | jq -r '.nodes | to_entries[] | select(.value.locked) | "\(.key): \(.value.locked.rev // .value.locked.narHash // "unknown")"' | sort) \
+         <(echo "$lock2" | jq -r '.nodes | to_entries[] | select(.value.locked) | "\(.key): \(.value.locked.rev // .value.locked.narHash // "unknown")"' | sort) \
+         || true
+}
+
+# Main diff function
+nixdiff() {
+    local HOSTNAME=$(hostname -s)
+    local AVAILABLE_SYSTEMS=$(get_available_systems)
+    local USAGE=$(cat <<EOF
+USAGE: $0 [ OPTIONS ] [ REF1 ] [ REF2 ]
+
+Diff Nix system configurations between git refs, showing:
+  - System package changes (via nix store diff-closures)
+  - Home-manager configuration file changes
+  - Flake input changes (flake.lock)
+
+REF1 and REF2 are git refs to compare (default: HEAD and working tree).
+Use 'working-tree' or '.' to refer to uncommitted changes.
+
+OPTIONS:
+    -h/--help        Show this message
+    -s/--system      System to diff (default: ${HOSTNAME})
+    --flake-only     Show only flake.lock changes
+    --system-only    Show only system package changes
+    --home-only      Show only home-manager changes
+    --no-cache       Force rebuild, ignore cached paths
+
+AVAILABLE SYSTEMS:
+$(echo "$AVAILABLE_SYSTEMS" | sed 's/^/    /')
+
+EXAMPLES:
+    $0                              # Compare HEAD vs working tree for current system
+    $0 main                         # Compare main vs working tree
+    $0 HEAD~1 HEAD                  # Compare last two commits
+    $0 --system huijatoo main HEAD  # Compare commits for specific system
+    $0 --flake-only                 # Show only flake input changes
+EOF
+    )
+
+    . $GETOPT -n "$0" -o "hs:" -l "help,system:,flake-only,system-only,home-only,no-cache" -- "$@"
+
+    local SYSTEM="$HOSTNAME"
+    local FLAKE_ONLY=false
+    local SYSTEM_ONLY=false
+    local HOME_ONLY=false
+    local NO_CACHE=false
+    local ARG i=0
+
+    while [ "$i" -lt "${#OPTS[@]}" ]; do
+        ARG="${OPTS[$i]}"
+        i=$((i+1))
+        case $ARG in
+            -h|--help)
+                echou "$USAGE"
+                ;;
+            -s|--system)
+                SYSTEM="${OPTS[$i]}"
+                i=$((i+1))
+                ;;
+            --flake-only)
+                FLAKE_ONLY=true
+                ;;
+            --system-only)
+                SYSTEM_ONLY=true
+                ;;
+            --home-only)
+                HOME_ONLY=true
+                ;;
+            --no-cache)
+                NO_CACHE=true
+                ;;
+            --)
+                break
+                ;;
+            *)
+                ercho "unknown option: '$ARG'" 1
+                ;;
+        esac
+    done
+
+    # Get positional arguments (refs)
+    local REF1="HEAD"
+    local REF2="working-tree"
+
+    if [ "${#ARGS[@]}" -ge 1 ]; then
+        REF1="${ARGS[0]}"
+    fi
+    if [ "${#ARGS[@]}" -ge 2 ]; then
+        REF2="${ARGS[1]}"
+    fi
+    if [ "${#ARGS[@]}" -gt 2 ]; then
+        ercho "too many arguments" 1
+    fi
+
+    # Validate system exists
+    local SYSTEM_TYPE=$(get_system_type "$SYSTEM")
+    if [ "$SYSTEM_TYPE" = "not_found" ]; then
+        ercho "system '$SYSTEM' not found in flake\n\nAvailable systems:\n${AVAILABLE_SYSTEMS}" 1
+    fi
+
+    # Resolve refs to commit hashes
+    local COMMIT1=$(resolve_ref "$REF1")
+    local COMMIT2=$(resolve_ref "$REF2")
+
+    echo "=== System: ${SYSTEM} (${SYSTEM_TYPE}) ==="
+    echo "Comparing: ${REF1} (${COMMIT1}) → ${REF2} (${COMMIT2})"
+    echo ""
+
+    # Show flake.lock changes
+    if [ "$SYSTEM_ONLY" = "false" ] && [ "$HOME_ONLY" = "false" ]; then
+        echo "=== Flake Input Changes ==="
+        diff_flake_lock "$REF1" "$REF2"
+        echo ""
+    fi
+
+    # If flake-only, we're done
+    if [ "$FLAKE_ONLY" = "true" ]; then
+        return 0
+    fi
+
+    # Build and diff system packages
+    if [ "$HOME_ONLY" = "false" ]; then
+        local SYSTEM_PATH1=$(build_system "$SYSTEM_TYPE" "$SYSTEM" "$REF1" "$COMMIT1" "$NO_CACHE")
+        local SYSTEM_PATH2=$(build_system "$SYSTEM_TYPE" "$SYSTEM" "$REF2" "$COMMIT2" "$NO_CACHE")
+
+        echo "=== System Package Changes ==="
+        diff_system_packages "$SYSTEM_PATH1" "$SYSTEM_PATH2"
+        echo ""
+    fi
+
+    # Build and diff home-manager
+    if [ "$SYSTEM_ONLY" = "false" ]; then
+        local USERNAME=$(get_system_user "$SYSTEM_TYPE" "$SYSTEM")
+
+        local HOME_PATH1=$(build_home_manager "$SYSTEM_TYPE" "$SYSTEM" "$USERNAME" "$REF1" "$COMMIT1" "$NO_CACHE")
+        local HOME_PATH2=$(build_home_manager "$SYSTEM_TYPE" "$SYSTEM" "$USERNAME" "$REF2" "$COMMIT2" "$NO_CACHE")
+
+        echo "=== Home-Manager Configuration Changes (${USERNAME}) ==="
+        diff_home_manager "$HOME_PATH1" "$HOME_PATH2"
+    fi
+}
+
+nixdiff "$@"
