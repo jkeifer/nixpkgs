@@ -2,11 +2,11 @@
 
 {
   imports = [
-    ../common.nix
+    ./default.nix
     "${self}/users/jkeifer"
   ];
 
-  home-manager.users.jkeifer = {
+  _.users.jkeifer.homeManager.config = {
     modules = {
       github.enable = true;
       htop.enable = true;

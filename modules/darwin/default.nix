@@ -8,15 +8,6 @@ with lib;
     ./defaults.nix
   ];
 
-  options.darwin = {
-    homebrewUser = mkOption {
-      type = types.nullOr types.str;
-      default = null;
-      description = "Username of the user managing Homebrew (required if homebrew is enabled)";
-      example = "jkeifer";
-    };
-  };
-
   config = {
     environment.shells = with pkgs; [
       bashInteractive

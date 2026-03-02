@@ -1,10 +1,10 @@
 # NixOS workstation configuration
 # Shared by all NixOS workstations
-{ config, lib, pkgs, ... }:
+{ self, config, lib, pkgs, ... }:
 
 {
   imports = [
-    ../common.nix
+    "${self}/hosts/common"
   ];
 
   environment.systemPackages = with pkgs; [

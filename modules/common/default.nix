@@ -3,7 +3,7 @@
 {
   imports = [
     ./nix.nix
-    ./user.nix
+    ./users.nix
   ];
 
   # Common cross-platform system configuration

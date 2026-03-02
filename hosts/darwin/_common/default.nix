@@ -1,10 +1,10 @@
 # Darwin workstation configuration
 # Shared by all Darwin workstations (but not CI systems)
-{ config, lib, pkgs, ... }:
+{ self, config, lib, pkgs, ... }:
 
 {
   imports = [
-    ../common.nix
+    "${self}/hosts/common"
   ];
 
   # Darwin-specific packages
