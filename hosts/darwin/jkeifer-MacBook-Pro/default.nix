@@ -3,7 +3,7 @@ let
   hostname = "jkeifer-MacBook-Pro";
 in {
   imports = [
-    ../workstation.nix
+    ../_commmon/workstation.nix
   ];
 
   nixpkgs.hostPlatform = "aarch64-darwin";

@@ -102,28 +102,23 @@
           modules = [ hostModule ];
           extraSpecialArgs = { inherit spacemacs zi; };
         };
+
+      # Automatically discover host configurations from directories
+      mkHostConfigs = dir: constructor:
+        let
+          entries = builtins.readDir dir;
+          hosts = builtins.filter (name: entries.${name} == "directory" && name != "_common") (builtins.attrNames entries);
+        in
+          builtins.listToAttrs (map (host: {
+            name = host;
+            value = constructor (dir + "/${host}");
+          }) hosts);
     in {
-      # MacOS configurations
-      darwinConfigurations = {
-        acamapichtli = mkDarwin ./hosts/darwin/acamapichtli;
-        toltecal = mkDarwin ./hosts/darwin/toltecal;
-        jkeifer-MacBook-Pro = mkDarwin ./hosts/darwin/jkeifer-MacBook-Pro;
-        oxomoco = mkDarwin ./hosts/darwin/oxomoco;
-        github-ci-darwin = mkDarwin ./hosts/darwin/github-ci-darwin;
-      };
-
-      nixosConfigurations = {
-        huijatoo = mkNixos ./hosts/nixos/huijatoo;
-      };
-
-      # home-manager configurations
-      homeConfigurations = {
-        # Build and activate with `nix build .#homeConfigurations.vm.activationPackage; ./result/activate`
-        vm = mkHome ./hosts/home-manager/vm;
-      };
+      darwinConfigurations = mkHostConfigs ./hosts/darwin mkDarwin;
+      nixosConfigurations = mkHostConfigs ./hosts/nixos mkNixos;
+      homeConfigurations = mkHostConfigs ./hosts/home-manager mkHome;
 
       overlays.default = import ./overlays inputs;
-
 
   } // flake-utils.lib.eachSystem supportedSystems (system: {
     legacyPackages = import inputs.nixpkgs-unstable { inherit system; inherit (nixpkgsConfig) config overlays; };

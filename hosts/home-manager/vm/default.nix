@@ -1,8 +1,8 @@
-{ config, lib, pkgs, ... }:
+{ self, config, lib, pkgs, ... }:
 
 {
   imports = [
-    ../../home
+    "{self}/home"
   ];
 
   nixpkgs.hostPlatform = "x86_64-linux";
