@@ -3,8 +3,7 @@ let
   hostname = "toltecal";
 in {
   imports = [
-    ../common.nix
-    "${self}/users/jkeifer"
+    ../_common/workstation.nix
   ];
 
   nixpkgs.hostPlatform = "aarch64-darwin";
@@ -21,9 +20,7 @@ in {
   };
 
   homebrew.casks = [
-    "google-chrome"
     "qgis"
-    "slack"
     "zoom"
   ];
 }

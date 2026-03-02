@@ -4,7 +4,7 @@ let
 in {
   imports = [
     ./hardware.nix
-    ../common.nix
+    ../_common
     "${self}/users/jkeifer"
   ];
 

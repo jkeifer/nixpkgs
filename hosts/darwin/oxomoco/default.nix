@@ -3,7 +3,7 @@ let
   hostname = "oxomoco";
 in {
   imports = [
-    ../workstation.nix
+    ../_common/workstation.nix
   ];
 
   nixpkgs.hostPlatform = "aarch64-darwin";
