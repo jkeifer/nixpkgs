@@ -8,7 +8,7 @@ in {
 
   nixpkgs.hostPlatform = "aarch64-darwin";
 
-  jkeifer.workspaces = [ "dev" "csar" ];
+  _.jkeifer.workspaces = [ "dev" "csar" ];
 
   networking = {
     computerName = hostname;

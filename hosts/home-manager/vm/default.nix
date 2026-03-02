@@ -2,7 +2,7 @@
 
 {
   imports = [
-    "{self}/home"
+    "${self}/home"
   ];
 
   nixpkgs.hostPlatform = "x86_64-linux";

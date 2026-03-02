@@ -3,12 +3,12 @@ let
   hostname = "jkeifer-MacBook-Pro";
 in {
   imports = [
-    ../_commmon/workstation.nix
+    ../_common/workstation.nix
   ];
 
   nixpkgs.hostPlatform = "aarch64-darwin";
 
-  jkeifer.workspaces = [ "dev" "e84" ];
+  _.jkeifer.workspaces = [ "dev" "e84" ];
 
   networking = {
     computerName = hostname;
@@ -19,7 +19,7 @@ in {
     ];
   };
 
-  home-manager.users.jkeifer = {
+  _.users.jkeifer.homeManager.config = {
     home.packages = with pkgs; [
       awscli2
     ];
