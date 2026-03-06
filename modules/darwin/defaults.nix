@@ -1,9 +1,6 @@
-{ ... }: let
-in {
-  # just get this working for now; see
-  # https://github.com/nix-darwin/nix-darwin/issues/1452
-  # tl;dr: this is going to change
-  system.primaryUser = "jkeifer";
+{ config, lib, ... }: {
+  system.primaryUser = lib.mkIf (config._.primaryUser != null)
+    config._.users.${config._.primaryUser}.username;
 
   system.defaults.NSGlobalDomain = {
     AppleInterfaceStyle = "Dark";

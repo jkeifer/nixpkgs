@@ -97,10 +97,17 @@
         };
 
       # Helper to build home-manager configurations with consistent configuration
-      mkHome = hostModule:
-        homeManagerConfiguration {
-          modules = [ hostModule ];
-          extraSpecialArgs = { inherit spacemacs zi; };
+      # Uses builtins.currentSystem so configs work on whatever machine evaluates them.
+      mkHome = hostDir:
+        let
+          pkgs = import inputs.nixpkgs-unstable {
+            system = builtins.currentSystem;
+            inherit (nixpkgsConfig) config overlays;
+          };
+        in homeManagerConfiguration {
+          inherit pkgs;
+          modules = [ hostDir ];
+          extraSpecialArgs = { inherit self spacemacs zi; };
         };
 
       # Automatically discover host configurations from directories
@@ -120,7 +127,56 @@
 
       overlays.default = import ./overlays inputs;
 
-  } // flake-utils.lib.eachSystem supportedSystems (system: {
-    legacyPackages = import inputs.nixpkgs-unstable { inherit system; inherit (nixpkgsConfig) config overlays; };
-  });
+      # Validation checks -- run `nix flake check --no-build` to evaluate all configs
+      # homeConfigurations use builtins.currentSystem so they can't be checked
+      # in pure evaluation mode; validate them with `nix build .#homeConfigurations.<name>.activationPackage`
+      checks = let
+        # Map each darwin config's toplevel derivation into checks for its system
+        darwinChecks = builtins.mapAttrs
+          (name: cfg: cfg.config.system.build.toplevel)
+          self.darwinConfigurations;
+
+        # Map each nixos config's toplevel derivation
+        nixosChecks = builtins.mapAttrs
+          (name: cfg: cfg.config.system.build.toplevel)
+          self.nixosConfigurations;
+
+        # Group all checks by their target system
+        groupBySystem = configs: getSystem:
+          builtins.foldl' (acc: name:
+            let
+              sys = getSystem configs.${name};
+            in acc // { ${sys} = (acc.${sys} or {}) // { ${name} = configs.${name}; }; }
+          ) {} (builtins.attrNames configs);
+      in
+        groupBySystem darwinChecks (drv: drv.system)
+        // groupBySystem nixosChecks (drv: drv.system);
+
+  } // flake-utils.lib.eachSystem supportedSystems (system:
+    let
+      pkgs = import inputs.nixpkgs-unstable { inherit system; inherit (nixpkgsConfig) config overlays; };
+    in {
+      legacyPackages = pkgs;
+
+      formatter = pkgs.nixfmt;
+
+      devShells.default = pkgs.mkShell {
+        name = "nixpkgs-dev";
+        packages = with pkgs; [
+          nixfmt
+          statix
+          deadnix
+        ];
+      };
+
+      packages = {
+        nixlify = pkgs.writeShellScriptBin "nixlify" ''
+          exec ${self.outPath}/bin/nixlify "$@"
+        '';
+        nixdiff = pkgs.writeShellScriptBin "nixdiff" ''
+          exec ${self.outPath}/bin/lib/nixdiff "$@"
+        '';
+      };
+    }
+  );
 }

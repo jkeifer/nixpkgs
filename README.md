@@ -5,24 +5,22 @@ A repo containing my nix system configurations in flake format.
 
 ## Quickstart
 
-First, add an appropriately-named output target to `flake.nix` for your system
-(for more information see the introduction to nix flakes below).
+First, add a host configuration directory under `hosts/darwin/`, `hosts/nixos/`, or
+`hosts/home-manager/` named after your system's hostname. The `mkHostConfigs`
+auto-discovery in `flake.nix` will pick it up automatically (for more information
+see the introduction to nix flakes below).
 
-The next steps both make use of a bash script in the bin directory which provides
+The next steps make use of a bash script in the bin directory which provides
 a set of convenience functions enabling easy nix system administration, named `nixlify`.
-Full details of the commands provided by `nixlfiy` are below.
+Full details of the commands provided by `nixlify` are below.
 
-Second, install nix to the system. Flake support currently relies upon the unstable
-nix 2.4 release, which means installing from a different source than the offical
-installer). The `nixlify install` command can be used to handle nix installation
-without having to handle any specific installation details:
+Second, install nix to the system. Use the
+[Determinate Systems installer](https://github.com/DeterminateSystems/nix-installer)
+or your preferred nix distribution (e.g., Lix) directly.
 
-```
-❯ ./bin/nixlify install
-```
-
-Lastly, use the `nixlify bootstrap` command to take care of building and applying
-the initial system configuration.
+Then, use the `nixlify bootstrap` command to take care of building and applying
+the initial system configuration. This uses `nix build` directly (rather than
+`darwin-rebuild`/`nixos-rebuild`) so it works before those tools are available.
 
 ```
 # by default bootstrap will not apply the built config
@@ -51,14 +49,14 @@ Get usage information.
 
 ### `nixlify install`
 
-Install nix to the local system.
+**Deprecated.** Prints a notice to install nix via your preferred distribution directly.
 
 
 ### `nixlify bootstrap`
 
-Bootstraps the initial system config and the installation
-of all required nix packages from a base system with a
-basic nix installation (see the 'install' command).
+Bootstraps the initial system config from a base system with a
+basic nix installation. Uses `nix build` directly so it works
+before `darwin-rebuild`/`nixos-rebuild` are available.
 
 
 ### `nixlify build`
@@ -95,6 +93,11 @@ Update remote git repo with local changes.
 ### `nixlify update`
 
 Update one or more flake input versions in the lock file.
+
+
+### `nixlify diff`
+
+Diff system configurations across git refs.
 
 
 ### `nixlify which`
@@ -144,38 +147,24 @@ Here we have a flake with one input `nixpkgs`, and two top-level outputs defined
 `darwinConfigurations` and `homeConfigurations`. Each of these outputs is a mapping,
 typically of hostname to a configuration definition.
 
-For example, the real flake.nix defines a MacOS configuration for the host `toltecal`
-that looks something like this:
+The real flake.nix uses an auto-discovery pattern (`mkHostConfigs`) that scans
+directories under `hosts/darwin/`, `hosts/nixos/`, and `hosts/home-manager/` to
+automatically generate configuration outputs. Each subdirectory (excluding `_common`)
+becomes a configuration entry keyed by its directory name (which should match the
+hostname). For example, a host config at `hosts/darwin/toltecal/default.nix` is
+automatically available as `darwinConfigurations.toltecal`.
 
-```
-# mkDarwinConfig is a nix function defined in the flake.nix to
-# generate a nix-darwin config as defined by the provided arguments
-toltecal = mkDarwinConfig {
-  username = "jkeifer";
-  hostname = "toltecal";
-  system   = "aarch64-darwin";
-  extraModules = [{
-    networking.knownNetworkServices = [
-      "Wi-Fi"
-      "USB 10/100/1000 LAN"
-    ];
-  }];
-};
-```
+The flake provides the following outputs:
 
-And if we run `nix flake show` we can see the top-level (and some second-level)
-outputs provided by the real flake.nix:
-
-```
-❯ nix flake show
-git+file:///Users/jkeifer/.nixpkgs
-├───darwinConfigurations: unknown
-├───homeConfigurations: unknown
-└───legacyPackages
-    ├───aarch64-darwin: omitted (use '--legacy' to show)
-    ├───x86_64-darwin: omitted (use '--legacy' to show)
-    └───x86_64-linux: omitted (use '--legacy' to show)
-```
+- **`darwinConfigurations`** -- nix-darwin system configs (auto-discovered from `hosts/darwin/`)
+- **`nixosConfigurations`** -- NixOS system configs (auto-discovered from `hosts/nixos/`)
+- **`homeConfigurations`** -- standalone home-manager configs (auto-discovered from `hosts/home-manager/`)
+- **`checks`** -- all of the above as `nix flake check` derivations, grouped by system
+- **`overlays.default`** -- nixpkgs overlay with custom packages
+- **`packages`** -- `nixlify` and `nixdiff` wrapper scripts
+- **`devShells.default`** -- dev shell with `nixfmt`, `statix`, `deadnix`
+- **`formatter`** -- `nixfmt` for `nix fmt`
+- **`legacyPackages`** -- full nixpkgs for each supported system
 
 While using hostnames for the key in the configuration mapping is not required,
 doing so does provide an easy means of automatically mapping a system to a

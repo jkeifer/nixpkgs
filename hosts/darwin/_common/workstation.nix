@@ -6,6 +6,8 @@
     "${self}/users/jkeifer"
   ];
 
+  _.primaryUser = "jkeifer";
+
   _.users.jkeifer.homeManager.config = {
     modules = {
       github.enable = true;
