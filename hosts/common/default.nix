@@ -12,9 +12,4 @@
     wget
     zsh
   ];
-
-  system.keyboard = {
-    enableKeyMapping = true;
-    remapCapsLockToControl = true;
-  };
 }

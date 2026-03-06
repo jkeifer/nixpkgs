@@ -2,6 +2,12 @@
 
 with lib;
 {
+  options._.primaryUser = mkOption {
+    type = types.nullOr types.str;
+    default = null;
+    description = "The primary user for the system (must be a key in _.users)";
+  };
+
   options._.users = mkOption {
     type = types.attrsOf (types.submodule ({ name, config, ... }: {
       options = {
@@ -78,6 +84,13 @@ with lib;
   };
 
   config = {
+    assertions = mkIf (config._.primaryUser != null) [
+      {
+        assertion = config._.users ? ${config._.primaryUser};
+        message = "_.primaryUser '${config._.primaryUser}' is not defined in _.users";
+      }
+    ];
+
     # Create system user accounts
     users.users = mapAttrs' (attrName: userCfg:
       let
@@ -86,17 +99,32 @@ with lib;
         # Auto-detect shell from evaluated home-manager config if not explicitly set
         detectedShell = config.home-manager.users.${username}.modules.shells.defaultShell or pkgs.bash;
         finalShell = if userCfg.shell != null then userCfg.shell else detectedShell;
-      in nameValuePair username {
+      in nameValuePair username ({
         description = userCfg.fullName;
         home = if pkgs.stdenv.isDarwin then "/Users/${username}" else "/home/${username}";
         shell = finalShell;
+      } // optionalAttrs pkgs.stdenv.isDarwin {
+        # nix-darwin-specific settings
         trustedForNix = userCfg.trustedForNix;
       } // optionalAttrs (!pkgs.stdenv.isDarwin) {
         # NixOS-specific settings
         isNormalUser = true;  # use users.users directly for service accounts
+        group = username;
         extraGroups = userCfg.extraGroups;
-      }
+      })
     ) config._.users;
+
+    # Create matching groups for NixOS users
+    users.groups = mkIf (!pkgs.stdenv.isDarwin) (mapAttrs' (attrName: userCfg:
+      nameValuePair userCfg.username {}
+    ) config._.users);
+
+    # On NixOS, trusted users are configured via nix.settings
+    nix.settings.trusted-users = mkIf (!pkgs.stdenv.isDarwin) (
+      builtins.filter (x: x != null) (mapAttrsToList (attrName: userCfg:
+        if userCfg.trustedForNix then userCfg.username else null
+      ) config._.users)
+    );
 
     # Create home-manager configurations
     home-manager.users = mapAttrs' (attrName: userCfg:

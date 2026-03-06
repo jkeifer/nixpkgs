@@ -14,6 +14,11 @@
   environment.shells = [ pkgs.bashInteractive pkgs.zsh ];
   environment.pathsToLink = [ "/share/zsh" ];
 
+  system.keyboard = {
+    enableKeyMapping = true;
+    remapCapsLockToControl = true;
+  };
+
   # nix-index for command-not-found functionality
   programs.nix-index.enable = true;
 }

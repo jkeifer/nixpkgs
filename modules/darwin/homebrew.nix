@@ -18,6 +18,9 @@ in {
     user = config.homebrew.user;
   };
 
+  homebrew.user = lib.mkIf (config._.primaryUser != null)
+    (lib.mkDefault config._.users.${config._.primaryUser}.username);
+
   homebrew = {
     enable = true;
     onActivation = {
