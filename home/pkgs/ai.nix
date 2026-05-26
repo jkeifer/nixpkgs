@@ -11,8 +11,8 @@ in {
   config = mkIf cfg.enable {
     home.packages = with pkgs; [
       claude-code
-      copilot-cli
       gemini-cli
+      github-copilot-cli
     ];
   };
 }
