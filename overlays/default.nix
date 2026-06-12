@@ -29,9 +29,8 @@ final: prev: ({
 
   # packages from master
   inherit (final.pkgs-master)
-    # TODO: remove this, waiting on a PR to land on unstable
-    #       https://github.com/NixOS/nixpkgs/pull/450333
-    awscli2
+    # TODO: remove once new model availability is stable and lands
+    claude-code
   ;
 
   # flake input packages

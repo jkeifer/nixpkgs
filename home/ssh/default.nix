@@ -16,41 +16,36 @@ in {
 
       # interesting config examples:
       # https://github.com/jwiegley/nix-config/blob/master/config/home.nix
-      matchBlocks = {
-        github = {
-          host = "*github.com";
-          identityFile = "~/.ssh/id_github";
-          identitiesOnly = true;
+      settings = {
+        "*github.com" = {
+          IdentityFile = "~/.ssh/id_github";
+          IdentitiesOnly = true;
         };
 
-        repo-element84 = {
-          host = "*repo.element84.com";
-          identityFile = "~/.ssh/id_gitlab";
-          identitiesOnly = true;
+        "*repo.element84.com" = {
+          IdentityFile = "~/.ssh/id_gitlab";
+          IdentitiesOnly = true;
         };
 
-        internal = {
-          host = "*.bnd *.bvn";
-          hostname = "%h.whyiseverythingalreadytaken.com";
-          identityFile = "~/.ssh/id_wieat";
-          identitiesOnly = true;
+        "*.bnd *.bvn" = {
+          HostName = "%h.whyiseverythingalreadytaken.com";
+          IdentityFile = "~/.ssh/id_wieat";
+          IdentitiesOnly = true;
         };
 
         "*" = {
-          forwardAgent = false;
-          compression = true;
-          serverAliveInterval = 0;
-          serverAliveCountMax = 3;
-          controlMaster  = "auto";
-          controlPath    = "${tmpdir}/%C";
-          controlPersist = "600";
-          hashKnownHosts = true;
-          userKnownHostsFile = "${config.home.homeDirectory}/.ssh/known_hosts";
-          extraOptions = {
-            UseKeychain    = "yes";
-            AddKeysToAgent = "yes";
-            IgnoreUnknown  = "UseKeychain";
-          };
+          ForwardAgent = false;
+          Compression = true;
+          ServerAliveInterval = 0;
+          ServerAliveCountMax = 3;
+          ControlMaster = "auto";
+          ControlPath = "${tmpdir}/%C";
+          ControlPersist = "600";
+          HashKnownHosts = true;
+          UserKnownHostsFile = "${config.home.homeDirectory}/.ssh/known_hosts";
+          IgnoreUnknown = "UseKeychain";
+          UseKeychain = "yes";
+          AddKeysToAgent = "yes";
         };
       };
     };
