@@ -8,16 +8,12 @@
   inputs = {
     flake-utils.url = "github:numtide/flake-utils";
 
-    nixpkgs-stable.url = "github:nixos/nixpkgs/nixpkgs-24.05-darwin";
+    nixpkgs-stable.url = "github:nixos/nixpkgs/nixpkgs-26.05-darwin";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     nixpkgs-master.url = "github:nixos/nixpkgs/master";
-    nixos-stable.url = "github:nixos/nixpkgs/nixos-24.05";
+    nixos-stable.url = "github:nixos/nixpkgs/nixos-26.05";
     nixos-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
-    spacemacs = {
-      url = "github:/syl20bnr/spacemacs/master";
-      flake = false;
-    };
     flake-compat = {
       url = "github:edolstra/flake-compat";
       flake = false;
@@ -36,7 +32,6 @@
       flake = false;
     };
 
-    nixneovim.url = "github:nixneovim/nixneovim";
     cookbook.url = "github:jkeifer/homebrew-cookbook";
   };
 
