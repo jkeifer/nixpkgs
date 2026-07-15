@@ -44,5 +44,12 @@ in {
         };
       };
     };
+  # Do not remove these, these are effectively documentation
+  # so I remember how and where to put in overrides
+  } // optionalAttrs (options ? darwin) {
+    # Darwin-specific configuration
+    homebrew.user = mkDefault config._.users.jkeifer.username;
+  } // optionalAttrs (options ? nixos) {
+    # NixOS-specific configuration
   };
 }
