@@ -44,10 +44,5 @@ in {
         };
       };
     };
-  } // optionalAttrs (options ? darwin) {
-    # Darwin-specific configuration
-    homebrew.user = mkDefault config._.users.jkeifer.username;
-  } // optionalAttrs (options ? nixos) {
-    # NixOS-specific configuration
   };
 }

@@ -7,7 +7,6 @@
 #   homeManager.imports = [ ./home ];
 #
 # To enable additional modules:
-#   homeManager.config.modules.emacs.enable = true;
 #   homeManager.config.modules.ssh.enable = true;
 #
 # To disable base modules:
@@ -24,7 +23,6 @@
   imports = [
     ./bat
     ./direnv
-    ./emacs
     ./git
     ./github
     ./gribe
@@ -63,7 +61,6 @@
     pkgs.darwin.enable = lib.mkDefault true;  # won't apply to non-darwin hosts
 
     # Other modules available but disabled by default
-    emacs.enable = lib.mkDefault false;
     github.enable = lib.mkDefault false;
     htop.enable = lib.mkDefault false;
     iterm2.enable = lib.mkDefault false;

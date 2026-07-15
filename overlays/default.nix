@@ -34,7 +34,6 @@ final: prev: ({
   ;
 
   # flake input packages
-  #nvim-plugins = import inputs.nixneovim.overlays.default;
   # none
 
 } // optionalAttrs (prev.stdenv.hostPlatform.system == "aarch64-darwin") {
