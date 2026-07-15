@@ -10,6 +10,10 @@ in {
 
   _.jkeifer.workspaces = [ "dev" "csar" ];
 
+  # This host runs Lix instead of CppNix, overriding the shared
+  # `lib.mkDefault pkgs.nixVersions.latest` default in modules/common/nix.nix.
+  nix.package = pkgs.lix;
+
   networking = {
     computerName = hostname;
     hostName = hostname;
