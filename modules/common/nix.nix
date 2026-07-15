@@ -21,9 +21,17 @@
       ];
 
       trusted-users = (lib.attrNames (lib.filterAttrs (name: user: user.trustedForNix or false) config.users.users)) ++ [ "@admin" "@wheel" ];
-      cores = 8;
-      max-jobs = 8;
+
+      # size parallelism to the machine rather than assuming 8 cores
+      cores = 0;
+      max-jobs = "auto";
     };
+
+    # Pin the registry's nixpkgs to the flake input so ad-hoc commands
+    # (nix shell nixpkgs#foo, nix run nixpkgs#bar) use the exact revision
+    # the system was built from instead of whatever the channel resolves to
+    registry.nixpkgs.flake =
+      if pkgs.stdenv.isDarwin then inputs.nixpkgs-unstable else inputs.nixos-unstable;
 
     gc = {
       automatic = true;
