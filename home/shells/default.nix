@@ -1,4 +1,4 @@
-{ config, pkgs, lib, zi, ... }:
+{ config, pkgs, lib, inputs, ... }:
 
 with lib;
 let
@@ -39,7 +39,7 @@ in {
   ];
 
   xdg.configFile."zi/bin" = {
-    source = zi;
+    source = inputs.zi;
     recursive = true;
   };
 

@@ -1,4 +1,4 @@
-{ config, pkgs, lib, zi, shellAliases, ... }:
+{ config, pkgs, lib, inputs, shellAliases, ... }:
 
 with lib;
 let
@@ -28,10 +28,10 @@ in {
   config = mkIf cfg.enable {
     modules.shells.defaultShell = mkOverride 90 pkgs.zsh;
 
-    home.packages = [ zi ];
+    home.packages = [ inputs.zi ];
 
     xdg.configFile."zi/bin" = {
-      source = zi;
+      source = inputs.zi;
       recursive = true;
     };
 

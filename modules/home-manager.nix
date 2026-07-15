@@ -1,4 +1,4 @@
-{ self, config, lib, pkgs, spacemacs, zi, ... }:
+{ self, inputs, config, lib, pkgs, ... }:
 
 {
   # Global home-manager configuration
@@ -8,6 +8,6 @@
     useGlobalPkgs = true;
     useUserPackages = true;
     backupFileExtension = "backup";
-    extraSpecialArgs = { inherit self spacemacs zi; };
+    extraSpecialArgs = { inherit self inputs; };
   };
 }

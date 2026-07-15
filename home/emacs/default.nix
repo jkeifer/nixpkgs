@@ -1,4 +1,4 @@
-{ config, lib, pkgs, spacemacs, ... }:
+{ config, lib, pkgs, inputs, ... }:
 
 with lib;
 let
@@ -11,7 +11,7 @@ in {
   config = mkIf cfg.enable {
     programs.emacs.enable = true;
     home.file.".emacs.d" = {
-      source = spacemacs;
+      source = inputs.spacemacs;
       recursive = true;
     };
     home.file.".spacemacs".source = ./spacemacs.el;

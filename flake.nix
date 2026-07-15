@@ -37,9 +37,10 @@
     };
 
     nixneovim.url = "github:nixneovim/nixneovim";
+    cookbook.url = "github:jkeifer/homebrew-cookbook";
   };
 
-  outputs = inputs@{ self, darwin, home-manager, flake-utils, nix-homebrew, spacemacs, zi, ... }:
+  outputs = inputs@{ self, darwin, home-manager, flake-utils, nix-homebrew, ... }:
     let
       inherit (darwin.lib) darwinSystem;
       inherit (home-manager.lib) homeManagerConfiguration;
@@ -86,14 +87,14 @@
       mkDarwin = hostModule:
         darwinSystem {
           modules = darwinModules ++ [ hostModule commonConfig ];
-          specialArgs = { inherit self spacemacs zi; };
+          specialArgs = { inherit self inputs; };
         };
 
       # Helper to build NixOS systems with consistent configuration
       mkNixos = hostModule:
         nixosSystem {
           modules = nixosModules ++ [ hostModule commonConfig ];
-          specialArgs = { inherit self spacemacs zi; };
+          specialArgs = { inherit self inputs; };
         };
 
       # Helper to build home-manager configurations with consistent configuration
@@ -107,7 +108,7 @@
         in homeManagerConfiguration {
           inherit pkgs;
           modules = [ hostDir ];
-          extraSpecialArgs = { inherit self spacemacs zi; };
+          extraSpecialArgs = { inherit self inputs; };
         };
 
       # Automatically discover host configurations from directories

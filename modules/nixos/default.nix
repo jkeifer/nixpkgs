@@ -1,4 +1,4 @@
-{ inputs, config, lib, pkgs, spacemacs, zi, ... }: {
+{ inputs, config, lib, pkgs, ... }: {
   imports = [
     # NixOS-specific nix configuration
     ./nix.nix

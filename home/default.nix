@@ -27,6 +27,7 @@
     ./emacs
     ./git
     ./github
+    ./gribe
     ./htop
     ./iterm2
     ./kitty
@@ -52,6 +53,8 @@
     direnv.enable = lib.mkDefault true;
     git.enable = lib.mkDefault true;
     vim.enable = lib.mkDefault true;
+    # gribe/transgribe is Apple-Silicon-only; gate the default to aarch64-darwin
+    gribe.enable = lib.mkDefault (pkgs.stdenv.hostPlatform.system == "aarch64-darwin");
     shells.bash.enable = lib.mkDefault true;
     tmp.enable = lib.mkDefault true;
 

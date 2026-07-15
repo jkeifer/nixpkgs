@@ -1,4 +1,4 @@
-{ inputs, config, lib, pkgs, spacemacs, zi, ... }:
+{ inputs, config, lib, pkgs, ... }:
 
 with lib;
 {
