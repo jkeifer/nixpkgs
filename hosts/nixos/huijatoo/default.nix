@@ -1,7 +1,5 @@
 { self, config, lib, pkgs, ... }:
-let
-  hostname = "huijatoo";
-in {
+{
   imports = [
     ./hardware.nix
     ../_common
@@ -9,6 +7,4 @@ in {
   ];
 
   nixpkgs.hostPlatform = "aarch64-linux";
-
-  networking.hostName = hostname;
 }

@@ -39,7 +39,7 @@
     let
       inherit (darwin.lib) darwinSystem;
       inherit (home-manager.lib) homeManagerConfiguration;
-      inherit (inputs.nixpkgs-unstable.lib) optionalAttrs singleton;
+      inherit (inputs.nixpkgs-unstable.lib) mkDefault;
       inherit (inputs.nixos-unstable.lib) nixosSystem;
 
       nixpkgsConfig = rec {
@@ -79,22 +79,35 @@
       };
 
       # Helper to build Darwin systems with consistent configuration
-      mkDarwin = hostModule:
+      # The host directory name doubles as the default hostname
+      mkDarwin = name: hostModule:
         darwinSystem {
-          modules = darwinModules ++ [ hostModule commonConfig ];
+          modules = darwinModules ++ [
+            hostModule
+            commonConfig
+            {
+              networking.hostName = mkDefault name;
+              networking.computerName = mkDefault name;
+            }
+          ];
           specialArgs = { inherit self inputs; };
         };
 
       # Helper to build NixOS systems with consistent configuration
-      mkNixos = hostModule:
+      # The host directory name doubles as the default hostname
+      mkNixos = name: hostModule:
         nixosSystem {
-          modules = nixosModules ++ [ hostModule commonConfig ];
+          modules = nixosModules ++ [
+            hostModule
+            commonConfig
+            { networking.hostName = mkDefault name; }
+          ];
           specialArgs = { inherit self inputs; };
         };
 
       # Helper to build home-manager configurations with consistent configuration
       # Uses builtins.currentSystem so configs work on whatever machine evaluates them.
-      mkHome = hostDir:
+      mkHome = _name: hostDir:
         let
           pkgs = import inputs.nixpkgs-unstable {
             system = builtins.currentSystem;
@@ -114,7 +127,7 @@
         in
           builtins.listToAttrs (map (host: {
             name = host;
-            value = constructor (dir + "/${host}");
+            value = constructor host (dir + "/${host}");
           }) hosts);
     in {
       darwinConfigurations = mkHostConfigs ./hosts/darwin mkDarwin;

@@ -1,7 +1,5 @@
 { self, config, lib, pkgs, ... }:
-let
-  hostname = "oxomoco";
-in {
+{
   imports = [
     ../_common/workstation.nix
   ];
@@ -14,14 +12,10 @@ in {
   # `lib.mkDefault pkgs.nixVersions.latest` default in modules/common/nix.nix.
   nix.package = pkgs.lix;
 
-  networking = {
-    computerName = hostname;
-    hostName = hostname;
-    knownNetworkServices = [
-      "Wi-Fi"
-      "USB 10/100/1000 LAN"
-    ];
-  };
+  networking.knownNetworkServices = [
+    "Wi-Fi"
+    "USB 10/100/1000 LAN"
+  ];
 
   homebrew.masApps = {
     msRDP = 1295203466;
