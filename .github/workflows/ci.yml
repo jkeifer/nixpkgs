@@ -1,0 +1,29 @@
+name: ci
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v22
+      # Eval-only check so darwin/nixos host configs can be evaluated on a
+      # linux runner without needing to build them.
+      - run: nix flake check --no-build --all-systems
+
+  lint:
+    runs-on: ubuntu-latest
+    # The tree currently has existing statix/deadnix findings; make this
+    # blocking again once those are cleaned up.
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v22
+      - run: nix run nixpkgs#statix -- check .
+      - run: nix run nixpkgs#deadnix -- --fail .

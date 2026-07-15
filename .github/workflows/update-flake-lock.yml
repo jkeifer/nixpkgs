@@ -1,0 +1,32 @@
+name: update-flake-lock
+
+on:
+  schedule:
+    # Mondays 14:00 UTC (~early morning US Pacific)
+    - cron: '0 14 * * 1'
+  workflow_dispatch:
+
+# Note: for the PR created by this workflow to actually run the `ci`
+# workflow, repo settings must have Settings -> Actions -> General ->
+# "Allow GitHub Actions to create and approve pull requests" enabled.
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-flake-lock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v22
+      # PRs opened with the default GITHUB_TOKEN do not trigger other
+      # workflows (including `ci`) -- this is a GitHub limitation to
+      # prevent recursive workflow runs. To get CI on these PRs, either
+      # configure a PAT via this action's `token` input, or manually
+      # trigger `ci` via workflow_dispatch / by closing and reopening
+      # the PR.
+      - uses: DeterminateSystems/update-flake-lock@v28
+        with:
+          pr-title: 'flake update'
+          commit-msg: 'flake update'
+          branch: 'update-flake-lock'
