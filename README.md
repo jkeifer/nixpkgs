@@ -47,11 +47,6 @@ also listed here for reference:
 Get usage information.
 
 
-### `nixlify install`
-
-**Deprecated.** Prints a notice to install nix via your preferred distribution directly.
-
-
 ### `nixlify bootstrap`
 
 Bootstraps the initial system config from a base system with a
@@ -77,17 +72,6 @@ Uninstall nix and whole configuration from the system.
 
 **NOTE: this operation is currently not implemented due
 to instability in the nix installation process.**
-
-
-### `nixlify pull`
-
-Update local git repo with remote changes.
-Any uncommitted changes will be stashed then re-applied.
-
-
-### `nixlify push`
-
-Update remote git repo with local changes.
 
 
 ### `nixlify update`
