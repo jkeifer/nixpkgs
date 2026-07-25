@@ -51,7 +51,9 @@
         overlays = [ self.overlays.default ];
       };
 
-      supportedSystems = [ "aarch64-darwin" "x86_64-darwin" "x86_64-linux" "aarch64-linux" ];
+      # x86_64-darwin was dropped upstream in nixpkgs 26.11 (evaluating it now
+      # throws); re-add it here only if an Intel Mac host is ever added.
+      supportedSystems = [ "aarch64-darwin" "x86_64-linux" "aarch64-linux" ];
 
       # Shared module configuration for all Darwin systems
       darwinModules = [
@@ -142,12 +144,12 @@
       checks = let
         # Map each darwin config's toplevel derivation into checks for its system
         darwinChecks = builtins.mapAttrs
-          (name: cfg: cfg.config.system.build.toplevel)
+          (_name: cfg: cfg.config.system.build.toplevel)
           self.darwinConfigurations;
 
         # Map each nixos config's toplevel derivation
         nixosChecks = builtins.mapAttrs
-          (name: cfg: cfg.config.system.build.toplevel)
+          (_name: cfg: cfg.config.system.build.toplevel)
           self.nixosConfigurations;
 
         # Group all checks by their target system
@@ -164,18 +166,49 @@
   } // flake-utils.lib.eachSystem supportedSystems (system:
     let
       pkgs = import inputs.nixpkgs-unstable { inherit system; inherit (nixpkgsConfig) config overlays; };
+
+      # Single source of truth for the validations run by both CI
+      # (`nix run .#ci`) and the git pre-commit hook the devShell installs.
+      ciCheck = pkgs.writeShellApplication {
+        name = "ci";
+        runtimeInputs = [ pkgs.statix pkgs.deadnix ];
+        text = ''
+          # Evaluate every host config. --no-build so darwin/nixos toplevels
+          # only need to *evaluate* on a linux runner; --impure so the
+          # homeConfigurations' builtins.currentSystem resolves.
+          nix flake check --no-build --all-systems --impure
+
+          # Lint (statix reads ./statix.toml). --no-lambda-pattern-names keeps
+          # idiomatic unused module args ({ config, lib, pkgs, ... }) passing.
+          statix check .
+          deadnix --fail --no-lambda-pattern-names .
+        '';
+      };
     in {
       legacyPackages = pkgs;
 
       formatter = pkgs.nixfmt;
 
+      # `nix run .#ci` runs exactly what CI runs.
+      apps = let app = { type = "app"; program = "${ciCheck}/bin/ci"; }; in {
+        ci = app;
+        default = app;
+      };
+
       devShells.default = pkgs.mkShell {
         name = "nixpkgs-dev";
-        packages = with pkgs; [
-          nixfmt
-          statix
-          deadnix
-        ];
+        packages = [ pkgs.nixfmt pkgs.statix pkgs.deadnix ciCheck ];
+
+        # Install a pre-commit hook that runs the same checks as CI. Only
+        # installs when absent, so it never clobbers an existing custom hook.
+        shellHook = ''
+          hook=.git/hooks/pre-commit
+          if [ -d .git ] && [ ! -e "$hook" ]; then
+            printf '#!/usr/bin/env bash\nexec nix run .#ci\n' > "$hook"
+            chmod +x "$hook"
+            echo "installed pre-commit hook -> nix run .#ci"
+          fi
+        '';
       };
 
       packages = {
