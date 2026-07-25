@@ -92,10 +92,10 @@ with lib;
     ];
 
     # Create system user accounts
-    users.users = mapAttrs' (attrName: userCfg:
+    users.users = mapAttrs' (_attrName: userCfg:
       let
         # Use the username option (which defaults to attrName but can be overridden)
-        username = userCfg.username;
+        inherit (userCfg) username;
         # Auto-detect shell from evaluated home-manager config if not explicitly set
         detectedShell = config.home-manager.users.${username}.modules.shells.defaultShell or pkgs.bash;
         finalShell = if userCfg.shell != null then userCfg.shell else detectedShell;
@@ -105,29 +105,29 @@ with lib;
         shell = finalShell;
       } // optionalAttrs pkgs.stdenv.isDarwin {
         # nix-darwin-specific settings
-        trustedForNix = userCfg.trustedForNix;
+        inherit (userCfg) trustedForNix;
       } // optionalAttrs (!pkgs.stdenv.isDarwin) {
         # NixOS-specific settings
         isNormalUser = true;  # use users.users directly for service accounts
         group = username;
-        extraGroups = userCfg.extraGroups;
+        inherit (userCfg) extraGroups;
       })
     ) config._.users;
 
     # Create matching groups for NixOS users
-    users.groups = mkIf (!pkgs.stdenv.isDarwin) (mapAttrs' (attrName: userCfg:
+    users.groups = mkIf (!pkgs.stdenv.isDarwin) (mapAttrs' (_attrName: userCfg:
       nameValuePair userCfg.username {}
     ) config._.users);
 
     # On NixOS, trusted users are configured via nix.settings
     nix.settings.trusted-users = mkIf (!pkgs.stdenv.isDarwin) (
-      builtins.filter (x: x != null) (mapAttrsToList (attrName: userCfg:
+      builtins.filter (x: x != null) (mapAttrsToList (_attrName: userCfg:
         if userCfg.trustedForNix then userCfg.username else null
       ) config._.users)
     );
 
     # Create home-manager configurations
-    home-manager.users = mapAttrs' (attrName: userCfg:
+    home-manager.users = mapAttrs' (_attrName: userCfg:
       nameValuePair userCfg.username ({ self, ... }: {
       imports = [
         # Always import shells/common.nix for defaultShell option (used by shell auto-detection)

@@ -7,12 +7,14 @@
     "${self}/hosts/common"
   ];
 
-  # Darwin-specific packages
-  environment.systemPackages = with pkgs; [
-  ];
+  environment = {
+    # Darwin-specific packages
+    systemPackages = with pkgs; [
+    ];
 
-  environment.shells = [ pkgs.bashInteractive pkgs.zsh ];
-  environment.pathsToLink = [ "/share/zsh" ];
+    shells = [ pkgs.bashInteractive pkgs.zsh ];
+    pathsToLink = [ "/share/zsh" ];
+  };
 
   system.keyboard = {
     enableKeyMapping = true;

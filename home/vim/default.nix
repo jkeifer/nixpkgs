@@ -48,7 +48,7 @@ in {
 
     programs.vim = {
       enable = true;
-      defaultEditor = cfg.defaultEditor;
+      inherit (cfg) defaultEditor;
       extraConfig = ''
         ${extra}
 
@@ -57,7 +57,7 @@ in {
       # if needing plugins in the future
       # find supported list: nix-env -f '<nixpkgs>' -qaP -A vimPlugins
       # then add them here
-      plugins = cfg.plugins;
+      inherit (cfg) plugins;
     };
   };
 }

@@ -53,27 +53,30 @@
     vim.enable = lib.mkDefault true;
     # gribe/transgribe is Apple-Silicon-only; gate the default to aarch64-darwin
     gribe.enable = lib.mkDefault (pkgs.stdenv.hostPlatform.system == "aarch64-darwin");
-    shells.bash.enable = lib.mkDefault true;
     tmp.enable = lib.mkDefault true;
-
-    # Package groups enabled by default
-    pkgs.core.enable = lib.mkDefault true;
-    pkgs.darwin.enable = lib.mkDefault true;  # won't apply to non-darwin hosts
 
     # Other modules available but disabled by default
     github.enable = lib.mkDefault false;
     htop.enable = lib.mkDefault false;
     iterm2.enable = lib.mkDefault false;
     kitty.enable = lib.mkDefault false;
-    shells.zsh.enable = lib.mkDefault false;
-    shells.fish.enable = lib.mkDefault false;
     ssh.enable = lib.mkDefault false;
 
-    # Package groups disabled by default
-    pkgs.ai.enable = lib.mkDefault false;
-    pkgs.containers.enable = lib.mkDefault false;
-    pkgs.fonts.enable = lib.mkDefault false;
-    pkgs.networking.enable = lib.mkDefault false;
-    pkgs.workstation.enable = lib.mkDefault false;
+    shells = {
+      bash.enable = lib.mkDefault true;
+      zsh.enable = lib.mkDefault false;
+      fish.enable = lib.mkDefault false;
+    };
+
+    # Package groups (core/darwin enabled by default, rest opt-in)
+    pkgs = {
+      core.enable = lib.mkDefault true;
+      darwin.enable = lib.mkDefault true;  # won't apply to non-darwin hosts
+      ai.enable = lib.mkDefault false;
+      containers.enable = lib.mkDefault false;
+      fonts.enable = lib.mkDefault false;
+      networking.enable = lib.mkDefault false;
+      workstation.enable = lib.mkDefault false;
+    };
   };
 }

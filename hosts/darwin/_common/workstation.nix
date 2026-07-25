@@ -20,11 +20,13 @@
         enable = true;
       };
 
-      pkgs.ai.enable = true;
-      pkgs.containers.enable = true;
-      pkgs.fonts.enable = true;
-      pkgs.networking.enable = true;
-      pkgs.workstation.enable = true;
+      pkgs = {
+        ai.enable = true;
+        containers.enable = true;
+        fonts.enable = true;
+        networking.enable = true;
+        workstation.enable = true;
+      };
     };
   };
 

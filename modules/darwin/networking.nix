@@ -1,8 +1,10 @@
-{ ... }: let
-in {
-  networking.applicationFirewall.enable = true;
-  networking.applicationFirewall.enableStealthMode = true;
-  networking.applicationFirewall.allowSigned = true;
-  networking.applicationFirewall.allowSignedApp = true;
-  networking.applicationFirewall.blockAllIncoming = true;
+_:
+{
+  networking.applicationFirewall = {
+    enable = true;
+    enableStealthMode = true;
+    allowSigned = true;
+    allowSignedApp = true;
+    blockAllIncoming = true;
+  };
 }

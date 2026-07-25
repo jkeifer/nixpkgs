@@ -11,7 +11,7 @@ let
         (
           builtins.attrNames (
             pkgs.lib.attrsets.filterAttrs
-              (k: v: v == "regular" || v == "symlink")
+              (_k: v: v == "regular" || v == "symlink")
               (builtins.readDir ./functions)
           )
         )
@@ -63,7 +63,7 @@ in {
         ${builtins.readFile ./config.zsh}
       '';
 
-      shellAliases = shellAliases;
+      inherit shellAliases;
     };
   };
 }

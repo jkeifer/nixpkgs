@@ -20,7 +20,7 @@
         "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
       ];
 
-      trusted-users = (lib.attrNames (lib.filterAttrs (name: user: user.trustedForNix or false) config.users.users)) ++ [ "@admin" "@wheel" ];
+      trusted-users = (lib.attrNames (lib.filterAttrs (_name: user: user.trustedForNix or false) config.users.users)) ++ [ "@admin" "@wheel" ];
 
       # size parallelism to the machine rather than assuming 8 cores
       cores = 0;

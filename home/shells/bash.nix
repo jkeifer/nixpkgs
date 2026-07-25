@@ -17,7 +17,7 @@ in {
 
     programs.bash = {
       enable = true;
-      shellAliases = shellAliases;
+      inherit shellAliases;
     };
   };
 }
