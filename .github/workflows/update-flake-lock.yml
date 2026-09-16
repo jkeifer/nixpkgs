@@ -18,14 +18,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25 # v22
+      - uses: DeterminateSystems/nix-installer-action@3138316df39ed29be04236d7ffc686fa525866aa # v23
       # PRs opened with the default GITHUB_TOKEN do not trigger other
       # workflows (including `ci`) -- this is a GitHub limitation to
       # prevent recursive workflow runs. To get CI on these PRs, either
       # configure a PAT via this action's `token` input, or manually
       # trigger `ci` via workflow_dispatch / by closing and reopening
       # the PR.
-      - uses: DeterminateSystems/update-flake-lock@834c491b2ece4de0bbd00d85214bb5e83b4da5c6 # v28
+      - uses: DeterminateSystems/update-flake-lock@da03c0f078bc4b2c37ee4f7e072d34bf8f188bb3 # v29
         with:
           pr-title: 'flake update'
           commit-msg: 'flake update'
